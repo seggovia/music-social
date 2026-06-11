@@ -1,7 +1,11 @@
 import { Link, Outlet } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { ROUTES } from '@/shared/lib/constants';
 
 export function Layout() {
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
   return (
     <div>
       <header>
@@ -18,7 +22,17 @@ export function Layout() {
           {' | '}
           <Link to={ROUTES.USERS}>Users</Link>
           {' | '}
-          <Link to={ROUTES.LOGIN}>Login</Link>
+          {user ? (
+            <button type="button" onClick={() => logout()}>
+              Logout ({user.username})
+            </button>
+          ) : (
+            <>
+              <Link to={ROUTES.LOGIN}>Login</Link>
+              {' | '}
+              <Link to={ROUTES.REGISTER}>Register</Link>
+            </>
+          )}
         </nav>
       </header>
       <main>

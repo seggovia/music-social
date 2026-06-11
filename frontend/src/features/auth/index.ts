@@ -1,2 +1,3 @@
 export { useAuthStore } from './stores/authStore';
-export type { AuthState } from './types';
+export { useAuth } from './hooks/useAuth';
+export type { AuthState, LoginFormValues, RegisterFormValues, UserProfile } from './types';
