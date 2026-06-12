@@ -3,4 +3,6 @@ import { albumsController } from './albums.controller.js';
 
 export const albumsRouter = Router();
 
+albumsRouter.get('/search', albumsController.search);
+albumsRouter.get('/:id', albumsController.getAlbum);
 albumsRouter.get('/', albumsController.healthCheck);

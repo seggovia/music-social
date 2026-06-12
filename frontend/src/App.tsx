@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
+import { AlbumPage, SearchPage } from '@/features/albums';
 import { Layout } from '@/shared/components/Layout';
 import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 import { PrivateRoute } from '@/shared/components/PrivateRoute';
@@ -15,7 +16,8 @@ export function App() {
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
         <Route element={<PrivateRoute />}>
-          <Route path={ROUTES.ALBUMS} element={<PlaceholderPage title="Albums" />} />
+          <Route path={ROUTES.ALBUMS} element={<SearchPage />} />
+          <Route path={`${ROUTES.ALBUMS}/:id`} element={<AlbumPage />} />
           <Route path={ROUTES.ARTISTS} element={<PlaceholderPage title="Artists" />} />
           <Route path={ROUTES.REVIEWS} element={<PlaceholderPage title="Reviews" />} />
           <Route path={ROUTES.MESSAGES} element={<PlaceholderPage title="Messages" />} />
