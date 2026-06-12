@@ -73,17 +73,25 @@ export const albumsService = {
     const artistCredit = Array.isArray(release['artist-credit']) ? release['artist-credit'] as Array<Record<string, unknown>> : [];
     const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
 
-    if (!artist || typeof artist.id !== 'string' || typeof artist.name !== 'string') {
-      throw new AppError('Artist information is unavailable for this album', 422);
-    }
+    const fallbackArtist = {
+      id: 'unknown',
+      name: 'Unknown Artist',
+    };
 
-    const artistRecord = await getArtist(artist.id);
+    const resolvedArtist =
+      artist && typeof artist.id === 'string' && typeof artist.name === 'string'
+        ? { id: artist.id, name: artist.name }
+        : fallbackArtist;
+
+    const artistRecord = resolvedArtist.id === 'unknown'
+      ? null
+      : await getArtist(resolvedArtist.id);
 
     const { supabase } = await import('../../config/supabase.js');
     const { data: existingArtist, error: artistError } = await supabase
       .from('artists')
       .select('id')
-      .eq('musicbrainz_id', artist.id)
+      .eq('musicbrainz_id', resolvedArtist.id)
       .maybeSingle();
 
     if (artistError) throw artistError;
@@ -93,10 +101,10 @@ export const albumsService = {
       const { data: createdArtist, error: createArtistError } = await supabase
         .from('artists')
         .insert({
-          musicbrainz_id: artist.id,
-          name: String(artist.name),
-          country: typeof artistRecord.country === 'string' ? artistRecord.country : null,
-          disambiguation: typeof artistRecord.disambiguation === 'string' ? artistRecord.disambiguation : null,
+          musicbrainz_id: resolvedArtist.id,
+          name: resolvedArtist.name,
+          country: artistRecord && typeof artistRecord.country === 'string' ? artistRecord.country : null,
+          disambiguation: artistRecord && typeof artistRecord.disambiguation === 'string' ? artistRecord.disambiguation : null,
           image_url: null,
         })
         .select('id')
@@ -119,7 +127,7 @@ export const albumsService = {
       id: inserted.id,
       mbid: inserted.musicbrainz_id,
       title: inserted.title,
-      artist: inserted.artists?.[0]?.name ?? 'Unknown artist',
+      artist: normalized.artist,
       coverUrl: inserted.cover_url,
       year: inserted.release_date ? new Date(inserted.release_date).getFullYear() : null,
       releaseDate: inserted.release_date,
