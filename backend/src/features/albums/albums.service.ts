@@ -1,23 +1,27 @@
-import { AppError } from '../../shared/errors/AppError.js';
 import { getCoverArt } from '../../shared/integrations/cover-art-archive/index.js';
 import { getAlbum, getArtist, searchAlbums } from '../../shared/integrations/musicbrainz/index.js';
 import { albumsRepository } from './albums.repository.js';
 
 function normalizeRelease(release: Record<string, unknown>) {
-  const artistCredit = Array.isArray(release['artist-credit']) ? release['artist-credit'] as Array<Record<string, unknown>> : [];
+  const artistCredit = Array.isArray(release['artist-credit']) ? (release['artist-credit'] as Array<Record<string, unknown>>) : [];
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
+  const media = Array.isArray(release.media) ? (release.media as Array<Record<string, unknown>>) : [];
+  const tags = Array.isArray(release.tags) ? (release.tags as Array<Record<string, unknown>>) : [];
   const date = typeof release.date === 'string' ? release.date : null;
+  const releaseTrackCount = typeof release['track-count'] === 'number' ? release['track-count'] : null;
+  const mediaTrackCount = media.reduce((sum, item) => sum + (typeof item['track-count'] === 'number' ? item['track-count'] : 0), 0);
 
   return {
     mbid: typeof release.id === 'string' ? release.id : '',
     title: typeof release.title === 'string' ? release.title : 'Unknown album',
-    artist: artistCredit.map((entry) => String(entry.name ?? '')).filter(Boolean).join(', ') || (artist?.name ? String(artist.name) : 'Unknown artist'),
+    artist: artistCredit.map((entry) => String(entry.name ?? '')).filter(Boolean).join(', ') || (artist?.name ? String(artist.name) : 'Unknown Artist'),
     artistMbid: typeof artist?.id === 'string' ? artist.id : null,
     coverUrl: null as string | null,
     year: date ? new Date(date).getFullYear() : null,
     releaseDate: date,
-    trackCount: typeof release['track-count'] === 'number' ? release['track-count'] : null,
-    media: Array.isArray(release.media) ? release.media : [],
+    trackCount: releaseTrackCount ?? (mediaTrackCount > 0 ? mediaTrackCount : null),
+    genres: tags.map((tag) => String(tag.name ?? '')).filter(Boolean),
+    media,
   };
 }
 
@@ -57,7 +61,7 @@ export const albumsService = {
         id: cached.id,
         mbid: cached.musicbrainz_id,
         title: cached.title,
-        artist: cached.artists?.[0]?.name ?? 'Unknown artist',
+        artist: cached.artists?.name ?? 'Unknown Artist',
         coverUrl: cached.cover_url,
         year: cached.release_date ? new Date(cached.release_date).getFullYear() : null,
         releaseDate: cached.release_date,
@@ -131,8 +135,8 @@ export const albumsService = {
       coverUrl: inserted.cover_url,
       year: inserted.release_date ? new Date(inserted.release_date).getFullYear() : null,
       releaseDate: inserted.release_date,
-      trackCount: inserted.track_count,
-      genres: [],
+      trackCount: normalized.trackCount,
+      genres: normalized.genres,
       tracks: [],
     };
   },
