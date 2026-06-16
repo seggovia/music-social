@@ -6,4 +6,10 @@ export const artistsController = {
     const result = await artistsService.healthCheck();
     res.json(result);
   }) as RequestHandler,
+
+  getByMbid: (async (req, res) => {
+    const mbid = req.params.mbid as string;
+    const artist = await artistsService.getOrCache(mbid);
+    res.json(artist);
+  }) as RequestHandler,
 };
