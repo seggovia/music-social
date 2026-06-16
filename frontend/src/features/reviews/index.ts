@@ -1,2 +1,2 @@
-export { useReviewsStore } from './stores/reviewsStore';
-export type { ReviewsState } from './types';
+export * from './types';
+export * from './stores/reviewsStore';
