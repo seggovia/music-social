@@ -1,3 +1,4 @@
+import { AppError } from '../../shared/errors/AppError.js';
 import { getCoverArt } from '../../shared/integrations/cover-art-archive/index.js';
 import { getAlbum, getArtist, searchAlbums } from '../../shared/integrations/musicbrainz/index.js';
 import { albumsRepository } from './albums.repository.js';
@@ -31,13 +32,19 @@ export const albumsService = {
   },
 
   async search(query: string) {
-    if (!query.trim()) {
-      return [];
-    }
+    if (!query.trim()) return [];
 
     const cached = await albumsRepository.search?.(query);
     if (cached && cached.length > 0) {
-      return cached;
+      return cached.map((c) => ({
+        id: c.id,
+        mbid: c.musicbrainz_id,
+        title: c.title,
+        artist: c.artists?.name ?? 'Unknown Artist',
+        artistMbid: c.artist_musicbrainz_id ?? null,
+        coverUrl: c.cover_url,
+        year: c.release_date ? new Date(c.release_date).getFullYear() : null,
+      }));
     }
 
     const response = await searchAlbums(query);
@@ -62,39 +69,33 @@ export const albumsService = {
         mbid: cached.musicbrainz_id,
         title: cached.title,
         artist: cached.artists?.name ?? 'Unknown Artist',
+        artistMbid: cached.artist_musicbrainz_id ?? null,
         coverUrl: cached.cover_url,
         year: cached.release_date ? new Date(cached.release_date).getFullYear() : null,
         releaseDate: cached.release_date,
         trackCount: cached.track_count,
+        genres: [],
+        tracks: [],
       };
     }
 
     const release = await getAlbum(mbid);
     const normalized = normalizeRelease(release as Record<string, unknown>);
-    const coverUrl = await getCoverArt(mbid);
-    normalized.coverUrl = coverUrl;
+    normalized.coverUrl = await getCoverArt(mbid);
 
     const artistCredit = Array.isArray(release['artist-credit']) ? release['artist-credit'] as Array<Record<string, unknown>> : [];
     const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
 
-    const fallbackArtist = {
-      id: 'unknown',
-      name: 'Unknown Artist',
-    };
+    const resolvedArtist = artist && typeof artist.id === 'string' && typeof artist.name === 'string'
+      ? { id: artist.id, name: artist.name }
+      : { id: 'unknown', name: normalized.artist };
 
-    const resolvedArtist =
-      artist && typeof artist.id === 'string' && typeof artist.name === 'string'
-        ? { id: artist.id, name: artist.name }
-        : fallbackArtist;
-
-    const artistRecord = resolvedArtist.id === 'unknown'
-      ? null
-      : await getArtist(resolvedArtist.id);
+    const artistRecord = resolvedArtist.id !== 'unknown' ? await getArtist(resolvedArtist.id) : null;
 
     const { supabase } = await import('../../config/supabase.js');
     const { data: existingArtist, error: artistError } = await supabase
       .from('artists')
-      .select('id')
+      .select('id, musicbrainz_id')
       .eq('musicbrainz_id', resolvedArtist.id)
       .maybeSingle();
 
@@ -114,7 +115,7 @@ export const albumsService = {
         .select('id')
         .single();
 
-      if (createArtistError) throw createArtistError;
+      if (createArtistError) throw new AppError('Failed to create artist', 500, createArtistError);
       artistId = createdArtist.id;
     }
 
@@ -132,6 +133,7 @@ export const albumsService = {
       mbid: inserted.musicbrainz_id,
       title: inserted.title,
       artist: normalized.artist,
+      artistMbid: normalized.artistMbid,
       coverUrl: inserted.cover_url,
       year: inserted.release_date ? new Date(inserted.release_date).getFullYear() : null,
       releaseDate: inserted.release_date,
