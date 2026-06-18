@@ -8,7 +8,14 @@ function normalizeRelease(release: Record<string, unknown>) {
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
   const media = Array.isArray(release.media) ? (release.media as Array<Record<string, unknown>>) : [];
   const tags = Array.isArray(release.tags) ? (release.tags as Array<Record<string, unknown>>) : [];
-  const date = typeof release.date === 'string' ? release.date : null;
+  const rawDate = typeof release.date === 'string' ? release.date : null;
+  const date = rawDate
+    ? rawDate.length === 4
+      ? `${rawDate}-01-01`
+      : rawDate.length === 7
+        ? `${rawDate}-01`
+        : rawDate
+    : null;
   const releaseTrackCount = typeof release['track-count'] === 'number' ? release['track-count'] : null;
   const mediaTrackCount = media.reduce((sum, item) => sum + (typeof item['track-count'] === 'number' ? item['track-count'] : 0), 0);
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ReviewForm } from '@/features/reviews/components/ReviewForm';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { useReviewsStore } from '@/features/reviews/stores/reviewsStore';
@@ -33,7 +33,16 @@ export function AlbumPage() {
         />
         <div>
           <h1 style={{ marginTop: 0 }}>{currentAlbum.title}</h1>
-          <p><strong>Artist:</strong> {currentAlbum.artist}</p>
+          <p>
+            <strong>Artist:</strong>{' '}
+            {currentAlbum.artistMbid ? (
+              <Link to={`/artists/${currentAlbum.artistMbid}`}>
+                {currentAlbum.artist}
+              </Link>
+            ) : (
+              currentAlbum.artist
+            )}
+          </p>
           <p><strong>Year:</strong> {currentAlbum.year ?? 'Unknown'}</p>
           <p><strong>Tracks:</strong> {currentAlbum.trackCount ?? 'Unknown'}</p>
           <p><strong>Genres:</strong> {currentAlbum.genres?.join(', ') || 'Not available'}</p>

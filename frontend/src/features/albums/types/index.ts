@@ -3,6 +3,7 @@ export interface Album {
   mbid: string;
   title: string;
   artist: string;
+  artistMbid?: string | null;
   coverUrl?: string | null;
   year?: number | null;
   releaseDate?: string | null;
