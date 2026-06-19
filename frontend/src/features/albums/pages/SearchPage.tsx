@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { AlbumCard } from '../components/AlbumCard';
 import { useAlbumsStore } from '../stores/albumsStore';
+import styles from './SearchPage.module.css';
 
 export function SearchPage() {
   const [query, setQuery] = useState('');
@@ -13,29 +14,32 @@ export function SearchPage() {
   }
 
   return (
-    <section style={{ maxWidth: 1080, margin: '2rem auto', padding: '0 1rem' }}>
-      <h1>Search albums</h1>
-      <p>Search MusicBrainz and cache the result locally.</p>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+    <section className={styles.page}>
+      <h1 className={styles.title}>Search albums</h1>
+      <p className={styles.subtitle}>Search MusicBrainz and cache the result locally.</p>
+
+      <form onSubmit={handleSubmit} className={styles.searchForm}>
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Try: Abbey Road"
-          style={{ flex: 1, padding: '0.75rem' }}
+          className={styles.input}
         />
-        <button type="submit" disabled={isLoading}>{isLoading ? 'Searching...' : 'Search'}</button>
+        <button type="submit" disabled={isLoading} className={styles.searchButton}>
+          {isLoading ? 'Searching...' : 'Search'}
+        </button>
       </form>
 
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+      <div className={styles.grid}>
         {results.map((album) => (
           <AlbumCard key={album.mbid} album={album} />
         ))}
       </div>
 
-      {!isLoading && results.length === 0 ? <p>No albums found yet.</p> : null}
+      {!isLoading && results.length === 0 ? <p className={styles.empty}>No albums found yet.</p> : null}
     </section>
   );
 }
