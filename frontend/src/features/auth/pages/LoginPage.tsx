@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { ROUTES } from '@/shared/lib/constants';
+import styles from '../components/AuthForm.module.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -18,15 +19,31 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '2rem auto' }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.75rem' }}>
-        <input type="email" placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-        <button type="submit" disabled={isLoading}>{isLoading ? 'Signing in...' : 'Sign in'}</button>
+    <div className={styles.wrapper}>
+      <h1 className={styles.title}>Login</h1>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className={styles.input}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className={styles.input}
+          required
+        />
+        <button type="submit" disabled={isLoading} className={styles.submitButton}>
+          {isLoading ? 'Signing in...' : 'Sign in'}
+        </button>
       </form>
-      {error ? <p role="alert">{error}</p> : null}
-      <p>
+      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+      <p className={styles.footer}>
         No account? <Link to={ROUTES.REGISTER}>Create one</Link>
       </p>
     </div>
