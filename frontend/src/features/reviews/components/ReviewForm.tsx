@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useReviewsStore } from '../stores/reviewsStore';
+import styles from './ReviewForm.module.css';
 
 interface Props {
   albumId: string;
@@ -24,12 +25,12 @@ export function ReviewForm({ albumId, onSuccess }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: '2rem' }}>
-      <h3>Write a review</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div style={{ marginBottom: '1rem' }}>
-        <label htmlFor="rating">
-          Rating (0.5 – 5):&nbsp;
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <h3 className={styles.heading}>Write a review</h3>
+      {error && <p className={styles.error}>{error}</p>}
+      <div className={styles.field}>
+        <label htmlFor="rating" className={styles.label}>
+          Rating (0.5 – 5):
           <input
             id="rating"
             type="number"
@@ -38,21 +39,21 @@ export function ReviewForm({ albumId, onSuccess }: Props) {
             step={0.5}
             value={rating}
             onChange={(e) => setRating(Number(e.target.value))}
-            style={{ width: 60 }}
+            className={styles.ratingInput}
           />
         </label>
       </div>
-      <div style={{ marginBottom: '1rem' }}>
+      <div className={styles.field}>
         <textarea
           placeholder="Write your review..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={5}
-          style={{ width: '100%', maxWidth: 600 }}
+          className={styles.textarea}
           required
         />
       </div>
-      <button type="submit" disabled={isLoading}>
+      <button type="submit" disabled={isLoading} className={styles.submitButton}>
         {isLoading ? 'Submitting...' : 'Submit review'}
       </button>
     </form>

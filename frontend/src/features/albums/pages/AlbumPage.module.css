@@ -1,0 +1,92 @@
+.page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6);
+}
+
+.hero {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin-bottom: var(--space-10);
+}
+
+.cover {
+  width: 280px;
+  height: 280px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.details {
+  padding-top: var(--space-2);
+}
+
+.albumTitle {
+  margin: 0 0 var(--space-4);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+}
+
+.meta strong {
+  color: var(--color-text);
+  font-weight: 600;
+  margin-right: var(--space-2);
+}
+
+.artistLink {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.artistLink:hover {
+  color: var(--color-text);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-10) 0;
+}
+
+.tracklist {
+  margin-top: var(--space-6);
+}
+
+.tracklist ol {
+  list-style: none;
+  counter-reset: track;
+}
+
+.tracklist li {
+  counter-increment: track;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.tracklist li::before {
+  content: counter(track);
+  display: inline-block;
+  width: 2rem;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.loginPrompt {
+  color: var(--color-text-muted);
+  padding: var(--space-6) 0;
+}
+
+.loginPrompt a {
+  font-weight: 600;
+}

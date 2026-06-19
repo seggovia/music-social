@@ -5,6 +5,7 @@ import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { useReviewsStore } from '@/features/reviews/stores/reviewsStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useAlbumsStore } from '../stores/albumsStore';
+import styles from './AlbumPage.module.css';
 
 export function AlbumPage() {
   const { id } = useParams();
@@ -18,39 +19,41 @@ export function AlbumPage() {
     void fetchByAlbum(id);
   }, [fetchAlbum, fetchByAlbum, id]);
 
-  if (!id) return <p>Album not found.</p>;
-  if (isLoading) return <p>Loading album details…</p>;
-  if (error) return <p role="alert">{error}</p>;
-  if (!currentAlbum) return <p>No album details available.</p>;
+  if (!id) return <p className={styles.page}>Album not found.</p>;
+  if (isLoading) return <p className={styles.page}>Loading album details…</p>;
+  if (error) return <p className={styles.page} role="alert">{error}</p>;
+  if (!currentAlbum) return <p className={styles.page}>No album details available.</p>;
 
   return (
-    <article style={{ maxWidth: 900, margin: '2rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+    <article className={styles.page}>
+      <div className={styles.hero}>
         <img
           src={currentAlbum.coverUrl ?? 'https://placehold.co/400x400?text=No+Cover'}
           alt={currentAlbum.title}
-          style={{ width: 280, height: 280, objectFit: 'cover', borderRadius: 12 }}
+          className={styles.cover}
         />
-        <div>
-          <h1 style={{ marginTop: 0 }}>{currentAlbum.title}</h1>
-          <p>
-            <strong>Artist:</strong>{' '}
-            {currentAlbum.artistMbid ? (
-              <Link to={`/artists/${currentAlbum.artistMbid}`}>
-                {currentAlbum.artist}
-              </Link>
-            ) : (
-              currentAlbum.artist
-            )}
-          </p>
-          <p><strong>Year:</strong> {currentAlbum.year ?? 'Unknown'}</p>
-          <p><strong>Tracks:</strong> {currentAlbum.trackCount ?? 'Unknown'}</p>
-          <p><strong>Genres:</strong> {currentAlbum.genres?.join(', ') || 'Not available'}</p>
+        <div className={styles.details}>
+          <h1 className={styles.albumTitle}>{currentAlbum.title}</h1>
+          <div className={styles.meta}>
+            <p>
+              <strong>Artist:</strong>{' '}
+              {currentAlbum.artistMbid ? (
+                <Link to={`/artists/${currentAlbum.artistMbid}`} className={styles.artistLink}>
+                  {currentAlbum.artist}
+                </Link>
+              ) : (
+                currentAlbum.artist
+              )}
+            </p>
+            <p><strong>Year:</strong> {currentAlbum.year ?? 'Unknown'}</p>
+            <p><strong>Tracks:</strong> {currentAlbum.trackCount ?? 'Unknown'}</p>
+            <p><strong>Genres:</strong> {currentAlbum.genres?.join(', ') || 'Not available'}</p>
+          </div>
         </div>
       </div>
 
       {(currentAlbum.tracks ?? []).length > 0 && (
-        <>
+        <div className={styles.tracklist}>
           <h2>Tracklist</h2>
           <ol>
             {currentAlbum.tracks!.map((track, index) => (
@@ -59,17 +62,17 @@ export function AlbumPage() {
               </li>
             ))}
           </ol>
-        </>
+        </div>
       )}
 
-      <hr style={{ margin: '2rem 0' }} />
+      <hr className={styles.divider} />
 
       <ReviewList />
 
       {user ? (
         <ReviewForm albumId={currentAlbum.id} onSuccess={() => fetchByAlbum(currentAlbum.id)} />
       ) : (
-        <p><a href="/login">Log in</a> to write a review.</p>
+        <p className={styles.loginPrompt}><Link to="/login">Log in</Link> to write a review.</p>
       )}
     </article>
   );
