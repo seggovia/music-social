@@ -17,4 +17,26 @@ export const usersController = {
     const users = await usersService.list();
     res.json(users);
   }) as RequestHandler,
+
+  topReviewers: (async (_req, res) => {
+    const users = await usersService.listTopReviewers();
+    res.json(users);
+  }) as RequestHandler,
+
+  byGenre: (async (_req, res) => {
+    const users = await usersService.listByGenre();
+    res.json(users);
+  }) as RequestHandler,
+
+  similar: (async (req, res) => {
+    const username = req.params.username as string;
+    const users = await usersService.listByAffinity(username, 'similar');
+    res.json(users);
+  }) as RequestHandler,
+
+  opposite: (async (req, res) => {
+    const username = req.params.username as string;
+    const users = await usersService.listByAffinity(username, 'opposite');
+    res.json(users);
+  }) as RequestHandler,
 };
