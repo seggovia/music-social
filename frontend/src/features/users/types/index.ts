@@ -28,3 +28,18 @@ export interface UserSummary {
   display_name: string | null;
   avatar_url: string | null;
 }
+
+export interface TopReviewerUser extends UserSummary {
+  reviewCount: number;
+}
+
+export interface GenreUser extends UserSummary {
+  topGenre: string | null;
+}
+
+export interface AffinityUser extends UserSummary {
+  sharedAlbums: number;
+  avgRatingDiff: number;
+}
+
+export type UsersFilter = 'all' | 'top-reviewers' | 'by-genre' | 'similar' | 'opposite';
