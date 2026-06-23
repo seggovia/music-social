@@ -27,9 +27,9 @@ export async function searchAlbums(query: string) {
 }
 
 export async function getAlbum(mbid: string) {
-  return fetchJson<Record<string, unknown>>(`/release/${mbid}?fmt=json`);
+  return fetchJson<Record<string, unknown>>(`/release/${mbid}?fmt=json&inc=tags+genres+artist-credits`);
 }
 
 export async function getArtist(mbid: string) {
-  return fetchJson<Record<string, unknown>>(`/artist/${mbid}?fmt=json`);
+  return fetchJson<Record<string, unknown>>(`/artist/${mbid}?fmt=json&inc=tags+genres`);
 }

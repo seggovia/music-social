@@ -8,6 +8,7 @@ function normalizeRelease(release: Record<string, unknown>) {
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
   const media = Array.isArray(release.media) ? (release.media as Array<Record<string, unknown>>) : [];
   const tags = Array.isArray(release.tags) ? (release.tags as Array<Record<string, unknown>>) : [];
+  const genresField = Array.isArray(release.genres) ? (release.genres as Array<Record<string, unknown>>) : [];
   const rawDate = typeof release.date === 'string' ? release.date : null;
   const date = rawDate
     ? rawDate.length === 4
@@ -28,7 +29,10 @@ function normalizeRelease(release: Record<string, unknown>) {
     year: date ? new Date(date).getFullYear() : null,
     releaseDate: date,
     trackCount: releaseTrackCount ?? (mediaTrackCount > 0 ? mediaTrackCount : null),
-    genres: tags.map((tag) => String(tag.name ?? '')).filter(Boolean),
+    genres: [...new Set([
+      ...genresField.map((g) => String(g.name ?? '')),
+      ...tags.map((tag) => String(tag.name ?? '')),
+    ].filter(Boolean))],
     media,
   };
 }
@@ -41,25 +45,25 @@ export const albumsService = {
   async search(query: string) {
     if (!query.trim()) return [];
 
-    const cached = await albumsRepository.search?.(query);
-    if (cached && cached.length > 0) {
-      return cached.map((c) => ({
-        id: c.id,
-        mbid: c.musicbrainz_id,
-        title: c.title,
-        artist: c.artists?.name ?? 'Unknown Artist',
-        artistMbid: c.artist_musicbrainz_id ?? null,
-        coverUrl: c.cover_url,
-        year: c.release_date ? new Date(c.release_date).getFullYear() : null,
-      }));
-    }
-
     const response = await searchAlbums(query);
     const releases = Array.isArray(response.releases) ? response.releases : [];
 
     const results = await Promise.all(
       releases.map(async (release) => {
         const normalized = normalizeRelease(release as Record<string, unknown>);
+        const cached = await albumsRepository.findByMbid(normalized.mbid);
+
+        if (cached) {
+          return {
+            mbid: cached.musicbrainz_id,
+            title: cached.title,
+            artist: cached.artists?.name ?? normalized.artist,
+            artistMbid: cached.artist_musicbrainz_id ?? normalized.artistMbid,
+            coverUrl: cached.cover_url,
+            year: cached.release_date ? new Date(cached.release_date).getFullYear() : normalized.year,
+          };
+        }
+
         normalized.coverUrl = await getCoverArt(normalized.mbid);
         return normalized;
       }),
@@ -81,7 +85,7 @@ export const albumsService = {
         year: cached.release_date ? new Date(cached.release_date).getFullYear() : null,
         releaseDate: cached.release_date,
         trackCount: cached.track_count,
-        genres: [],
+        genres: cached.genreNames ?? [],
         tracks: [],
       };
     }
@@ -134,6 +138,14 @@ export const albumsService = {
       cover_url: normalized.coverUrl,
       track_count: normalized.trackCount,
     });
+
+    if (normalized.genres.length > 0) {
+      try {
+        await albumsRepository.attachGenres(inserted.id, normalized.genres);
+      } catch (genreError) {
+        console.error('Failed to attach genres for album', inserted.id, genreError);
+      }
+    }
 
     return {
       id: inserted.id,
