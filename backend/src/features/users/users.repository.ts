@@ -10,7 +10,7 @@ export const usersRepository = {
   async findByUsername(username: string) {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url, bio, created_at')
+      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
       .eq('username', username)
       .maybeSingle();
 
@@ -21,7 +21,7 @@ export const usersRepository = {
   async findById(id: string) {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url, bio, created_at')
+      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
       .eq('id', id)
       .maybeSingle();
 
@@ -116,4 +116,28 @@ export const usersRepository = {
     if (error) throw new AppError('Failed to fetch reviews for comparison', 500, error);
     return data ?? [];
   },
+
+  async update(userId: string, data: {
+    display_name?: string | null;
+    bio?: string | null;
+    avatar_url?: string | null;
+    spotify_url?: string | null;
+    lastfm_url?: string | null;
+    instagram_url?: string | null;
+    twitter_url?: string | null;
+    youtube_url?: string | null;
+    bandcamp_url?: string | null;
+  }) {
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update(data)
+      .eq('id', userId)
+      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
+      .single();
+
+    if (error) throw new AppError('Failed to update profile', 500, error);
+    return updated;
+  },
+
+
 };

@@ -39,4 +39,11 @@ export const usersController = {
     const users = await usersService.listByAffinity(username, 'opposite');
     res.json(users);
   }) as RequestHandler,
+
+  updateProfile: (async (req, res) => {
+    const username = req.params.username as string;
+    const requesterId = req.userId!;
+    const updated = await usersService.updateProfile(requesterId, username, req.body);
+    res.json(updated);
+  }) as RequestHandler,
 };
