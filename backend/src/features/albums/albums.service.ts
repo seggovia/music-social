@@ -2,7 +2,7 @@ import { AppError } from '../../shared/errors/AppError.js';
 import { getCoverArt } from '../../shared/integrations/cover-art-archive/index.js';
 import { getAlbum, getArtist, searchAlbums } from '../../shared/integrations/musicbrainz/index.js';
 import { albumsRepository } from './albums.repository.js';
-
+import { getAlbumGenres } from '../../shared/integrations/lastfm/index.js';
 function normalizeRelease(release: Record<string, unknown>) {
   const artistCredit = Array.isArray(release['artist-credit']) ? (release['artist-credit'] as Array<Record<string, unknown>>) : [];
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
@@ -139,9 +139,14 @@ export const albumsService = {
       track_count: normalized.trackCount,
     });
 
-    if (normalized.genres.length > 0) {
+    let finalGenres = normalized.genres;
+    if (finalGenres.length === 0) {
+      finalGenres = await getAlbumGenres(normalized.artist, normalized.title);
+    }
+
+    if (finalGenres.length > 0) {
       try {
-        await albumsRepository.attachGenres(inserted.id, normalized.genres);
+        await albumsRepository.attachGenres(inserted.id, finalGenres);
       } catch (genreError) {
         console.error('Failed to attach genres for album', inserted.id, genreError);
       }
@@ -157,7 +162,7 @@ export const albumsService = {
       year: inserted.release_date ? new Date(inserted.release_date).getFullYear() : null,
       releaseDate: inserted.release_date,
       trackCount: normalized.trackCount,
-      genres: normalized.genres,
+      genres: finalGenres,
       tracks: [],
     };
   },
