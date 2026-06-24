@@ -1,11 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuthStore } from '@/features/auth/stores/authStore';
+import { EditProfileForm } from '../components/EditProfileForm';
+import { SocialLinks } from '../components/SocialLinks';
 import { useUsersStore } from '../stores/usersStore';
 import styles from './UserProfilePage.module.css';
 
 export function UserProfilePage() {
   const { username } = useParams();
   const { currentProfile, isLoading, error, fetchProfile } = useUsersStore();
+  const me = useAuthStore((state) => state.user);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!username) return;
@@ -18,6 +23,23 @@ export function UserProfilePage() {
   if (!currentProfile) return <p className={styles.page}>No profile data available.</p>;
 
   const initial = currentProfile.username.charAt(0).toUpperCase();
+  const isOwnProfile = me?.username === currentProfile.username;
+
+  if (isEditing) {
+    return (
+      <div className={styles.page}>
+        <h1 className={styles.username}>Edit profile</h1>
+        <EditProfileForm
+          profile={currentProfile}
+          onCancel={() => setIsEditing(false)}
+          onSaved={() => {
+            setIsEditing(false);
+            void fetchProfile(username);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -39,8 +61,15 @@ export function UserProfilePage() {
             )}
           </div>
           {currentProfile.bio && <p className={styles.bio}>{currentProfile.bio}</p>}
+          {isOwnProfile && (
+            <button type="button" onClick={() => setIsEditing(true)} className={styles.editButton}>
+              Edit profile
+            </button>
+          )}
         </div>
       </div>
+
+      <SocialLinks links={currentProfile} />
 
       <h2 className={styles.sectionTitle}>Reviews ({currentProfile.reviewCount})</h2>
       {currentProfile.reviews.length === 0 ? (

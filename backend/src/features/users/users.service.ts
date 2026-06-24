@@ -107,4 +107,31 @@ export const usersService = {
 
     return results;
   },
+  async updateProfile(requesterId: string, username: string, data: {
+    display_name?: string | null;
+    bio?: string | null;
+    avatar_url?: string | null;
+    spotify_url?: string | null;
+    lastfm_url?: string | null;
+    instagram_url?: string | null;
+    twitter_url?: string | null;
+    youtube_url?: string | null;
+    bandcamp_url?: string | null;
+  }) {
+    const target = await usersRepository.findByUsername(username);
+    if (!target) throw new AppError('User not found', 404);
+    if (target.id !== requesterId) throw new AppError('Not authorized to edit this profile', 403);
+
+    const urlFields: (keyof typeof data)[] = [
+      'spotify_url', 'lastfm_url', 'instagram_url', 'twitter_url', 'youtube_url', 'bandcamp_url', 'avatar_url',
+    ];
+    for (const field of urlFields) {
+      const value = data[field];
+      if (value && value.trim() && !/^https?:\/\//i.test(value.trim())) {
+        throw new AppError(`${field} must be a valid URL starting with http(s)://`, 400);
+      }
+    }
+
+    return usersRepository.update(requesterId, data);
+  },
 };
