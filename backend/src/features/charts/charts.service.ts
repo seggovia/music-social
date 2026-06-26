@@ -11,4 +11,7 @@ export const chartsService = {
    async topAllTime() {
     return chartsRepository.topAllTime();
   },
+  async topByYear(year: number) {
+    return chartsRepository.topByYear(year);
+  },
 };

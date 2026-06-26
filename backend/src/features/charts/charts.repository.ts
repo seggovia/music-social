@@ -61,4 +61,20 @@ export const chartsRepository = {
       .sort((a, b) => b.avgRating - a.avgRating)
       .slice(0, limit);
   },
+  /** Top albums lanzados en un año específico, ordenados por rating promedio */
+  async topByYear(year: number, limit = 20) {
+    const { data, error } = await supabase
+      .from('albums')
+      .select('id, title, cover_url, release_date, artists(name), reviews(rating)')
+      .gte('release_date', `${year}-01-01`)
+      .lte('release_date', `${year}-12-31`);
+
+    if (error) throw error;
+
+    return (data ?? [])
+      .map((row) => mapAlbumRow(row as ReviewedAlbumRow))
+      .filter((a) => a.reviewCount >= 1)
+      .sort((a, b) => b.avgRating - a.avgRating)
+      .slice(0, limit);
+  },
 };
