@@ -47,4 +47,18 @@ export const chartsRepository = {
       .sort((a, b) => b.reviewCount - a.reviewCount)
       .slice(0, limit);
   },
+  /** Top albums de todos los tiempos: ordenados por rating promedio (mínimo 1 review) */
+  async topAllTime(limit = 20) {
+    const { data, error } = await supabase
+      .from('albums')
+      .select('id, title, cover_url, release_date, artists(name), reviews(rating)');
+
+    if (error) throw error;
+
+    return (data ?? [])
+      .map((row) => mapAlbumRow(row as ReviewedAlbumRow))
+      .filter((a) => a.reviewCount >= 1)
+      .sort((a, b) => b.avgRating - a.avgRating)
+      .slice(0, limit);
+  },
 };

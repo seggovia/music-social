@@ -8,4 +8,7 @@ export const chartsService = {
   async mostReviewed() {
     return chartsRepository.mostReviewed();
   },
+   async topAllTime() {
+    return chartsRepository.topAllTime();
+  },
 };

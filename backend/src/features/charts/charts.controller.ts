@@ -11,4 +11,8 @@ export const chartsController = {
     const albums = await chartsService.mostReviewed();
     res.json(albums);
   }) as RequestHandler,
+  topAllTime: (async (_req, res) => {
+    const albums = await chartsService.topAllTime();
+    res.json(albums);
+  }) as RequestHandler,
 };

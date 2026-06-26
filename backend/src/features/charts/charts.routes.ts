@@ -5,3 +5,4 @@ export const chartsRouter = Router();
 
 chartsRouter.get('/', chartsController.healthCheck);
 chartsRouter.get('/most-reviewed', chartsController.mostReviewed);
+chartsRouter.get('/top-all-time', chartsController.topAllTime);
