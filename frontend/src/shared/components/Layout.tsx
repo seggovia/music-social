@@ -46,6 +46,7 @@ export function Layout() {
           <div className={styles.links}>
             <NavLink to={ROUTES.ALBUMS} className={navLinkClass}>Albums</NavLink>
             <NavLink to={ROUTES.ARTISTS} className={navLinkClass}>Artists</NavLink>
+            <NavLink to={ROUTES.CHARTS} className={navLinkClass}>Charts</NavLink>
             <NavLink to={ROUTES.REVIEWS} className={navLinkClass}>Reviews</NavLink>
             <NavLink to={ROUTES.MESSAGES} className={navLinkClass}>Messages</NavLink>
             <NavLink to={ROUTES.USERS} className={navLinkClass}>Users</NavLink>

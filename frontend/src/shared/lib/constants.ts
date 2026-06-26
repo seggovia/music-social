@@ -5,6 +5,7 @@ export const ROUTES = {
   REVIEWS: '/reviews',
   MESSAGES: '/messages',
   USERS: '/users',
+  CHARTS: '/charts',
   LOGIN: '/login',
   REGISTER: '/register',
 } as const;
