@@ -47,6 +47,7 @@ export const chartsRepository = {
       .sort((a, b) => b.reviewCount - a.reviewCount)
       .slice(0, limit);
   },
+
   /** Top albums de todos los tiempos: ordenados por rating promedio (mínimo 1 review) */
   async topAllTime(limit = 20) {
     const { data, error } = await supabase
@@ -61,6 +62,7 @@ export const chartsRepository = {
       .sort((a, b) => b.avgRating - a.avgRating)
       .slice(0, limit);
   },
+
   /** Top albums lanzados en un año específico, ordenados por rating promedio */
   async topByYear(year: number, limit = 20) {
     const { data, error } = await supabase
@@ -76,5 +78,43 @@ export const chartsRepository = {
       .filter((a) => a.reviewCount >= 1)
       .sort((a, b) => b.avgRating - a.avgRating)
       .slice(0, limit);
+  },
+
+  /** Top albums de un género específico, ordenados por rating promedio */
+  async topByGenre(genreSlug: string, limit = 20) {
+    const { data: genre, error: genreError } = await supabase
+      .from('genres')
+      .select('id, name')
+      .eq('slug', genreSlug)
+      .maybeSingle();
+
+    if (genreError) throw genreError;
+    if (!genre) return [];
+
+    const { data, error } = await supabase
+      .from('album_genres')
+      .select('albums(id, title, cover_url, release_date, artists(name), reviews(rating))')
+      .eq('genre_id', genre.id);
+
+    if (error) throw error;
+
+    return (data ?? [])
+      .map((row: Record<string, unknown>) => row.albums as ReviewedAlbumRow | null)
+      .filter((album): album is ReviewedAlbumRow => album !== null)
+      .map((album) => mapAlbumRow(album))
+      .filter((a) => a.reviewCount >= 1)
+      .sort((a, b) => b.avgRating - a.avgRating)
+      .slice(0, limit);
+  },
+
+  /** Lista de géneros disponibles para mostrar en un selector */
+  async listGenres() {
+    const { data, error } = await supabase
+      .from('genres')
+      .select('id, name, slug')
+      .order('name');
+
+    if (error) throw error;
+    return data ?? [];
   },
 };

@@ -14,4 +14,11 @@ export const chartsService = {
   async topByYear(year: number) {
     return chartsRepository.topByYear(year);
   },
+  async topByGenre(genreSlug: string) {
+    return chartsRepository.topByGenre(genreSlug);
+  },
+
+  async listGenres() {
+    return chartsRepository.listGenres();
+  },
 };

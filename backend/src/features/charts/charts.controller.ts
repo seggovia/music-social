@@ -20,4 +20,14 @@ export const chartsController = {
     const albums = await chartsService.topByYear(year);
     res.json(albums);
   }) as RequestHandler,
+  topByGenre: (async (req, res) => {
+    const genreSlug = req.params.genre as string;
+    const albums = await chartsService.topByGenre(genreSlug);
+    res.json(albums);
+  }) as RequestHandler,
+
+  listGenres: (async (_req, res) => {
+    const genres = await chartsService.listGenres();
+    res.json(genres);
+  }) as RequestHandler,
 };
