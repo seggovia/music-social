@@ -73,7 +73,8 @@ export const albumsService = {
   },
 
   async getOrCache(mbid: string) {
-    const cached = await albumsRepository.findByMbid(mbid);
+    const cachedById = await albumsRepository.findById(mbid);
+    const cached = cachedById ?? await albumsRepository.findByMbid(mbid);
     if (cached) {
       return {
         id: cached.id,
