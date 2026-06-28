@@ -6,6 +6,7 @@ import { reviewsRouter } from '../features/reviews/reviews.routes.js';
 import { messagesRouter } from '../features/messages/messages.routes.js';
 import { usersRouter } from '../features/users/users.routes.js';
 import { chartsRouter } from '../features/charts/charts.routes.js';
+import { followsRouter } from '../features/follows/follows.routes.js';
 
 export const apiRouter = Router();
 
@@ -16,3 +17,4 @@ apiRouter.use('/reviews', reviewsRouter);
 apiRouter.use('/messages', messagesRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/charts', chartsRouter);
+apiRouter.use('/follows', followsRouter);
