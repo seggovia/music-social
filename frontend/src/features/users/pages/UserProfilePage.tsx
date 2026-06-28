@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { FollowButton } from '@/features/follows';
+import { useFollowsStore } from '@/features/follows/stores/followsStore';
 import { EditProfileForm } from '../components/EditProfileForm';
 import { SocialLinks } from '../components/SocialLinks';
 import { useUsersStore } from '../stores/usersStore';
@@ -9,6 +11,7 @@ import styles from './UserProfilePage.module.css';
 export function UserProfilePage() {
   const { username } = useParams();
   const { currentProfile, isLoading, error, fetchProfile } = useUsersStore();
+  const { stats } = useFollowsStore();
   const me = useAuthStore((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -59,12 +62,20 @@ export function UserProfilePage() {
             {currentProfile.avgRating !== null && (
               <span><span className={styles.statValue}>{currentProfile.avgRating.toFixed(1)}</span> avg rating</span>
             )}
+            {stats && (
+              <>
+                <span><span className={styles.statValue}>{stats.followerCount}</span> followers</span>
+                <span><span className={styles.statValue}>{stats.followingCount}</span> following</span>
+              </>
+            )}
           </div>
           {currentProfile.bio && <p className={styles.bio}>{currentProfile.bio}</p>}
-          {isOwnProfile && (
+          {isOwnProfile ? (
             <button type="button" onClick={() => setIsEditing(true)} className={styles.editButton}>
               Edit profile
             </button>
+          ) : (
+            <FollowButton userId={currentProfile.id} />
           )}
         </div>
       </div>
