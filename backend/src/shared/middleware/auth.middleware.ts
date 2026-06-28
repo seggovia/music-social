@@ -23,3 +23,29 @@ export const authMiddleware: RequestHandler = async (req, _res, next) => {
     next(error);
   }
 };
+
+/**
+ * Igual que authMiddleware, pero no rechaza la request si no hay token.
+ * Si hay token válido, asigna req.userId. Si no, sigue sin asignarlo.
+ * Útil para rutas públicas que quieren personalizar la respuesta para usuarios logueados.
+ */
+export const optionalAuthMiddleware: RequestHandler = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : undefined;
+
+    if (!token) {
+      next();
+      return;
+    }
+
+    const { data, error } = await supabase.auth.getUser(token);
+    if (!error && data.user) {
+      req.userId = data.user.id;
+    }
+
+    next();
+  } catch {
+    next();
+  }
+};
