@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Skeleton } from '@/shared/components/Skeleton';
 import { ReviewForm } from '@/features/reviews/components/ReviewForm';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { useReviewsStore } from '@/features/reviews/stores/reviewsStore';
@@ -20,7 +21,23 @@ export function AlbumPage() {
   }, [fetchAlbum, fetchByAlbum, id]);
 
   if (!id) return <p className={styles.page}>Album not found.</p>;
-  if (isLoading) return <p className={styles.page}>Loading album details…</p>;
+  if (isLoading) {
+    return (
+      <article className={styles.page}>
+        <div className={styles.hero}>
+          <Skeleton width="280px" height="280px" borderRadius="12px" />
+          <div className={styles.details}>
+            <Skeleton width="300px" height="20px" />
+            <div style={{ marginTop: '1rem' }}>
+              <Skeleton width="200px" height="20px" />
+              <Skeleton width="150px" height="20px" style={{ marginTop: '0.5rem' }} />
+              <Skeleton width="180px" height="20px" style={{ marginTop: '0.5rem' }} />
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
   if (error) return <p className={styles.page} role="alert">{error}</p>;
   if (!currentAlbum) return <p className={styles.page}>No album details available.</p>;
 
