@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { SkeletonAlbumCard } from '@/shared/components/Skeleton';
 import { useChartsStore } from '../stores/chartsStore';
 import type { ChartTab } from '../types';
 import styles from './ChartsPage.module.css';
@@ -68,7 +69,13 @@ export function ChartsPage() {
         </div>
       )}
 
-      {isLoading && <p className={styles.empty}>Loading chart...</p>}
+      {isLoading && (
+        <div className={styles.list}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonAlbumCard key={i} />
+          ))}
+        </div>
+      )}
       {error && <p className={styles.empty} role="alert">{error}</p>}
 
       {!isLoading && !error && albums.length === 0 && (
