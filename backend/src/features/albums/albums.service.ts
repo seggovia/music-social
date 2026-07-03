@@ -45,6 +45,56 @@ export const albumsService = {
   async search(query: string) {
     if (!query.trim()) return [];
 
+    // Search in cache first with parallel queries
+    const { supabase } = await import('../../config/supabase.js');
+    const [{ data: exactMatchAlbums, error: exactError }, { data: partialMatchAlbums, error: partialError }] = await Promise.all([
+      supabase
+        .from('albums')
+        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
+        .ilike('title', `${query}%`)
+        .limit(25),
+      supabase
+        .from('albums')
+        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
+        .ilike('title', `%${query}%`)
+        .limit(25),
+    ]);
+
+    // Combine and deduplicate results, prioritizing exact matches
+    const seenIds = new Set<number>();
+    const combinedAlbums: any[] = [];
+
+    if (!exactError && Array.isArray(exactMatchAlbums)) {
+      for (const album of exactMatchAlbums) {
+        if (!seenIds.has(album.id)) {
+          seenIds.add(album.id);
+          combinedAlbums.push(album);
+        }
+      }
+    }
+
+    if (!partialError && Array.isArray(partialMatchAlbums)) {
+      for (const album of partialMatchAlbums) {
+        if (!seenIds.has(album.id)) {
+          seenIds.add(album.id);
+          combinedAlbums.push(album);
+        }
+      }
+    }
+
+    if (combinedAlbums.length >= 5) {
+      // Return cached results if 5 or more found
+      return combinedAlbums.map((album: any) => ({
+        mbid: album.musicbrainz_id,
+        title: album.title,
+        artist: album.artists?.name ?? 'Unknown Artist',
+        artistMbid: album.artists?.musicbrainz_id ?? null,
+        coverUrl: album.cover_url,
+        year: album.release_date ? new Date(album.release_date).getFullYear() : null,
+      }));
+    }
+
+    // If less than 5 cached results, search MusicBrainz
     const response = await searchAlbums(query);
     const releases = Array.isArray(response.releases) ? response.releases : [];
 
