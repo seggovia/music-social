@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { AlbumCard } from '../components/AlbumCard';
 import { useAlbumsStore } from '../stores/albumsStore';
 import styles from './SearchPage.module.css';
@@ -7,10 +7,19 @@ export function SearchPage() {
   const [query, setQuery] = useState('');
   const { results, isLoading, error, search } = useAlbumsStore((state) => state);
 
+  // Debounce search with 400ms delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query.trim()) {
+        search(query.trim());
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [query, search]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!query.trim()) return;
-    await search(query.trim());
   }
 
   return (
