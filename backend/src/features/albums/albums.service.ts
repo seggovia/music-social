@@ -45,17 +45,46 @@ export const albumsService = {
   async search(query: string) {
     if (!query.trim()) return [];
 
-    // Search in cache first
+    // Search in cache first with parallel queries
     const { supabase } = await import('../../config/supabase.js');
-    const { data: cachedAlbums, error: cacheError } = await supabase
-      .from('albums')
-      .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
-      .ilike('title', `%${query}%`)
-      .limit(25);
+    const [{ data: exactMatchAlbums, error: exactError }, { data: partialMatchAlbums, error: partialError }] = await Promise.all([
+      supabase
+        .from('albums')
+        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
+        .ilike('title', `${query}%`)
+        .limit(25),
+      supabase
+        .from('albums')
+        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
+        .ilike('title', `%${query}%`)
+        .limit(25),
+    ]);
 
-    if (!cacheError && Array.isArray(cachedAlbums) && cachedAlbums.length >= 5) {
+    // Combine and deduplicate results, prioritizing exact matches
+    const seenIds = new Set<number>();
+    const combinedAlbums: any[] = [];
+
+    if (!exactError && Array.isArray(exactMatchAlbums)) {
+      for (const album of exactMatchAlbums) {
+        if (!seenIds.has(album.id)) {
+          seenIds.add(album.id);
+          combinedAlbums.push(album);
+        }
+      }
+    }
+
+    if (!partialError && Array.isArray(partialMatchAlbums)) {
+      for (const album of partialMatchAlbums) {
+        if (!seenIds.has(album.id)) {
+          seenIds.add(album.id);
+          combinedAlbums.push(album);
+        }
+      }
+    }
+
+    if (combinedAlbums.length >= 5) {
       // Return cached results if 5 or more found
-      return cachedAlbums.map((album: any) => ({
+      return combinedAlbums.map((album: any) => ({
         mbid: album.musicbrainz_id,
         title: album.title,
         artist: album.artists?.name ?? 'Unknown Artist',
