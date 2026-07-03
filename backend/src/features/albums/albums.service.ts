@@ -45,6 +45,27 @@ export const albumsService = {
   async search(query: string) {
     if (!query.trim()) return [];
 
+    // Search in cache first
+    const { supabase } = await import('../../config/supabase.js');
+    const { data: cachedAlbums, error: cacheError } = await supabase
+      .from('albums')
+      .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
+      .ilike('title', `%${query}%`)
+      .limit(25);
+
+    if (!cacheError && Array.isArray(cachedAlbums) && cachedAlbums.length >= 5) {
+      // Return cached results if 5 or more found
+      return cachedAlbums.map((album: any) => ({
+        mbid: album.musicbrainz_id,
+        title: album.title,
+        artist: album.artists?.name ?? 'Unknown Artist',
+        artistMbid: album.artists?.musicbrainz_id ?? null,
+        coverUrl: album.cover_url,
+        year: album.release_date ? new Date(album.release_date).getFullYear() : null,
+      }));
+    }
+
+    // If less than 5 cached results, search MusicBrainz
     const response = await searchAlbums(query);
     const releases = Array.isArray(response.releases) ? response.releases : [];
 
