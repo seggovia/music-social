@@ -1,0 +1,55 @@
+@keyframes shimmer {
+  0% {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface) 0%,
+      var(--color-surface-2) 50%,
+      var(--color-surface) 100%
+    );
+    background-size: 200% 100%;
+    background-position: 200% 0;
+  }
+  100% {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface) 0%,
+      var(--color-surface-2) 50%,
+      var(--color-surface) 100%
+    );
+    background-size: 200% 100%;
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  display: inline-block;
+  background-color: var(--color-surface);
+  border-radius: 0.25rem;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonAlbumCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.skeletonImage {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  background-color: var(--color-surface);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonTextLine {
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-color: var(--color-surface);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonTextLine:last-child {
+  width: 70%;
+}

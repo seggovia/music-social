@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { AlbumCard } from '../components/AlbumCard';
+import { SkeletonAlbumCard } from '@/shared/components/Skeleton';
 import { useAlbumsStore } from '../stores/albumsStore';
 import styles from './SearchPage.module.css';
 
@@ -43,9 +44,15 @@ export function SearchPage() {
       {error ? <p role="alert" className={styles.error}>{error}</p> : null}
 
       <div className={styles.grid}>
-        {results.map((album) => (
-          <AlbumCard key={album.mbid} album={album} />
-        ))}
+        {isLoading ? (
+          Array.from({ length: 10 }).map((_, i) => (
+            <SkeletonAlbumCard key={i} />
+          ))
+        ) : (
+          results.map((album) => (
+            <AlbumCard key={album.mbid} album={album} />
+          ))
+        )}
       </div>
 
       {!isLoading && results.length === 0 ? <p className={styles.empty}>No albums found yet.</p> : null}
