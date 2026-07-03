@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Skeleton } from '@/shared/components/Skeleton';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { FollowButton } from '@/features/follows';
 import { useFollowsStore } from '@/features/follows/stores/followsStore';
@@ -21,7 +22,20 @@ export function UserProfilePage() {
   }, [fetchProfile, username]);
 
   if (!username) return <p className={styles.page}>User not found.</p>;
-  if (isLoading) return <p className={styles.page}>Loading profile...</p>;
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ display: 'flex', gap: '24px' }}>
+          <Skeleton width="96px" height="96px" borderRadius="50%" />
+          <div style={{ flex: 1 }}>
+            <Skeleton width="200px" height="16px" />
+            <Skeleton width="150px" height="16px" style={{ marginTop: '0.75rem' }} />
+            <Skeleton width="100px" height="16px" style={{ marginTop: '0.75rem' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (error) return <p className={styles.page} role="alert">{error}</p>;
   if (!currentProfile) return <p className={styles.page}>No profile data available.</p>;
 
