@@ -82,8 +82,8 @@ export const albumsService = {
       }
     }
 
-    if (combinedAlbums.length >= 5) {
-      // Return cached results if 5 or more found
+    if (combinedAlbums.length >= 1) {
+      // Return cached results if 1 or more found
       return combinedAlbums.map((album: any) => ({
         mbid: album.musicbrainz_id,
         title: album.title,

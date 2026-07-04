@@ -48,6 +48,7 @@ export function AlbumPage() {
           src={currentAlbum.coverUrl ?? 'https://placehold.co/400x400?text=No+Cover'}
           alt={currentAlbum.title}
           className={styles.cover}
+          loading="lazy"
         />
         <div className={styles.details}>
           <h1 className={styles.albumTitle}>{currentAlbum.title}</h1>

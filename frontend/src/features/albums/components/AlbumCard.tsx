@@ -15,6 +15,7 @@ export function AlbumCard({ album }: AlbumCardProps) {
           src={album.coverUrl ?? 'https://placehold.co/300x300?text=No+Cover'}
           alt={album.title}
           className={styles.cover}
+          loading="lazy"
         />
       </div>
       <div className={styles.info}>
