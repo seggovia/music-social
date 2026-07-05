@@ -34,4 +34,39 @@ export const messagesController = {
     const message = await messagesService.sendMessage(conversationId, senderId, body);
     res.status(201).json(message);
   }) as RequestHandler,
+
+  editMessage: (async (req, res) => {
+    const messageId = req.params.messageId as string;
+    const userId = req.userId!;
+    const body = req.body.body as string;
+    const message = await messagesService.editMessage(messageId, userId, body);
+    res.json(message);
+  }) as RequestHandler,
+
+  deleteMessage: (async (req, res) => {
+    const messageId = req.params.messageId as string;
+    const userId = req.userId!;
+    const mode = req.body.mode as 'sender' | 'all';
+    const message = await messagesService.deleteMessage(messageId, userId, mode);
+    res.json(message);
+  }) as RequestHandler,
+
+  pinMessage: (async (req, res) => {
+    const messageId = req.params.messageId as string;
+    const conversationId = req.params.conversationId as string;
+    const message = await messagesService.pinMessage(messageId, conversationId);
+    res.json(message);
+  }) as RequestHandler,
+
+  unpinMessage: (async (req, res) => {
+    const messageId = req.params.messageId as string;
+    const message = await messagesService.unpinMessage(messageId);
+    res.json(message);
+  }) as RequestHandler,
+
+  getPinnedMessages: (async (req, res) => {
+    const conversationId = req.params.conversationId as string;
+    const messages = await messagesService.getPinnedMessages(conversationId);
+    res.json(messages);
+  }) as RequestHandler,
 };
