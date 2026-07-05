@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { FollowButton } from '@/features/follows';
+import { useMessagesStore } from '@/features/messages/stores/messagesStore';
 import { useFollowsStore } from '@/features/follows/stores/followsStore';
 import { EditProfileForm } from '../components/EditProfileForm';
 import { SocialLinks } from '../components/SocialLinks';
@@ -14,6 +15,8 @@ export function UserProfilePage() {
   const { currentProfile, isLoading, error, fetchProfile } = useUsersStore();
   const { stats } = useFollowsStore();
   const me = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
+  const messagesStore = useMessagesStore();
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -89,7 +92,23 @@ export function UserProfilePage() {
               Edit profile
             </button>
           ) : (
-            <FollowButton userId={currentProfile.id} />
+            <>
+              <FollowButton userId={currentProfile.id} />
+              <button
+                type="button"
+                className={styles.editButton}
+                onClick={async () => {
+                  await messagesStore.startConversation(currentProfile.id);
+                  const conversation = useMessagesStore.getState().currentConversation;
+                  if (conversation) {
+                    navigate('/messages', { state: { conversationId: conversation.id } });
+                  }
+                }}
+                style={{ marginTop: '0.5rem', marginLeft: '0.5rem' }}
+              >
+                Message
+              </button>
+            </>
           )}
         </div>
       </div>
