@@ -1,2 +1,2 @@
-export { useMessagesStore } from './stores/messagesStore';
-export type { MessagesState } from './types';
+export * from './types';
+export * from './stores/messagesStore';

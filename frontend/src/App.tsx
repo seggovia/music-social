@@ -10,6 +10,7 @@ import { Layout } from '@/shared/components/Layout';
 import { PlaceholderPage } from '@/shared/components/PlaceholderPage';
 import { PrivateRoute } from '@/shared/components/PrivateRoute';
 import { ROUTES } from '@/shared/lib/constants';
+import { MessagesPage } from '@/features/messages/pages/MessagesPage';
 
 export function App() {
   return (
@@ -25,7 +26,7 @@ export function App() {
           <Route path={`${ROUTES.ARTISTS}/:mbid`} element={<ArtistPage />} />
           <Route path={ROUTES.ARTISTS} element={<PlaceholderPage title="Artists" />} />
           <Route path={ROUTES.REVIEWS} element={<PlaceholderPage title="Reviews" />} />
-          <Route path={ROUTES.MESSAGES} element={<PlaceholderPage title="Messages" />} />
+          <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
           <Route path={ROUTES.USERS} element={<UsersListPage />} />
           <Route path={`${ROUTES.USERS}/:username`} element={<UserProfilePage />} />
           <Route path={ROUTES.CHARTS} element={<ChartsPage />} />
