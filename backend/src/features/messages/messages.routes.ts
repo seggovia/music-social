@@ -1,6 +1,14 @@
 import { Router } from 'express';
+import { authMiddleware } from '../../shared/middleware/auth.middleware.js';
 import { messagesController } from './messages.controller.js';
 
-export const messagesRouter = Router();
+const router = Router();
 
-messagesRouter.get('/', messagesController.healthCheck);
+router.use(authMiddleware);
+router.get('/', messagesController.getConversations);
+router.post('/start', messagesController.startConversation);
+router.get('/:conversationId', messagesController.getMessages);
+router.post('/:conversationId', messagesController.sendMessage);
+
+export const messagesRouter = router;
+export default router;
