@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
+import { AppError } from '../errors/AppError.js';
 
-export const notFound: RequestHandler = (_req, res) => {
-  res.status(404).json({ error: 'Not found' });
+export const notFound: RequestHandler = (_req, _res, next) => {
+  next(new AppError('Route not found', 404));
 };

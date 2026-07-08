@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { apiClient } from '@/shared/api/client';
+import { reportError } from '@/shared/lib/errors';
 import type { Artist } from '../types';
 
 interface ArtistsState {
@@ -8,22 +10,19 @@ interface ArtistsState {
   fetchArtist: (mbid: string) => Promise<void>;
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
-
-export const useArtistsStore = create<ArtistsState>((set) => ({
+export const useArtistsStore = create<ArtistsState>((set, get) => ({
   currentArtist: null,
   isLoading: false,
   error: null,
 
   fetchArtist: async (mbid: string) => {
-    set({ isLoading: true, error: null });
+    set({ currentArtist: null, isLoading: true, error: null });
     try {
-      const response = await fetch(`${BASE_URL}/artists/${mbid}`);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const artist = await response.json() as Artist;
+      const artist = await apiClient.get<Artist>(`/artists/${mbid}`);
       set({ currentArtist: artist, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load artist', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar el artista. Intenta de nuevo.', () => get().fetchArtist(mbid));
+      set({ error: message, isLoading: false });
     }
   },
 }));

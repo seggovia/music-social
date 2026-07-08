@@ -12,7 +12,7 @@ import styles from './UserProfilePage.module.css';
 
 export function UserProfilePage() {
   const { username } = useParams();
-  const { currentProfile, isLoading, error, fetchProfile } = useUsersStore();
+  const { currentProfile, isLoading, fetchProfile } = useUsersStore();
   const { stats } = useFollowsStore();
   const me = useAuthStore((state) => state.user);
   const navigate = useNavigate();
@@ -39,7 +39,6 @@ export function UserProfilePage() {
       </div>
     );
   }
-  if (error) return <p className={styles.page} role="alert">{error}</p>;
   if (!currentProfile) return <p className={styles.page}>No profile data available.</p>;
 
   const initial = currentProfile.username.charAt(0).toUpperCase();

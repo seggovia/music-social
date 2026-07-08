@@ -7,15 +7,18 @@ import styles from '../components/AuthForm.module.css';
 export function LoginPage() {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
-  const error = useAuthStore((state) => state.error);
   const isLoading = useAuthStore((state) => state.isLoading);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await login({ email, password });
-    navigate(ROUTES.HOME);
+    try {
+      await login({ email, password });
+      navigate(ROUTES.HOME);
+    } catch {
+      // El toast global muestra el error.
+    }
   }
 
   return (
@@ -42,7 +45,6 @@ export function LoginPage() {
           {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
-      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
       <p className={styles.footer}>
         No account? <Link to={ROUTES.REGISTER}>Create one</Link>
       </p>

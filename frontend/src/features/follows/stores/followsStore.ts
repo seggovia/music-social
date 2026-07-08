@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { apiClient } from '@/shared/api/client';
+import { reportError } from '@/shared/lib/errors';
 import type { FollowStats, FollowUser } from '../types';
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 interface FollowsState {
   stats: FollowStats | null;
@@ -31,67 +31,56 @@ export const useFollowsStore = create<FollowsState>((set, get) => ({
 
   fetchStats: async (userId: string) => {
     try {
-      const response = await fetch(`${BASE_URL}/follows/${userId}/stats`, {
-        headers: authHeaders(),
-      });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const stats = await response.json() as FollowStats;
+      const stats = await apiClient.get<FollowStats>(`/follows/${userId}/stats`, { headers: authHeaders() });
       set({ stats });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load follow stats' });
+      const message = reportError(e, 'No pudimos cargar los seguidores. Intenta de nuevo.', () => get().fetchStats(userId));
+      set({ error: message });
     }
   },
 
   fetchFollowers: async (userId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${BASE_URL}/follows/${userId}/followers`);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const followers = await response.json() as FollowUser[];
+      const followers = await apiClient.get<FollowUser[]>(`/follows/${userId}/followers`);
       set({ followers, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load followers', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar seguidores. Intenta de nuevo.', () => get().fetchFollowers(userId));
+      set({ error: message, isLoading: false });
     }
   },
 
   fetchFollowing: async (userId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${BASE_URL}/follows/${userId}/following`);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const following = await response.json() as FollowUser[];
+      const following = await apiClient.get<FollowUser[]>(`/follows/${userId}/following`);
       set({ following, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load following', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar seguidos. Intenta de nuevo.', () => get().fetchFollowing(userId));
+      set({ error: message, isLoading: false });
     }
   },
 
   follow: async (userId: string) => {
     try {
-      const response = await fetch(`${BASE_URL}/follows/${userId}`, {
-        method: 'POST',
-        headers: authHeaders(),
-      });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      await apiClient.post<unknown>(`/follows/${userId}`, undefined, { headers: authHeaders() });
       const current = get().stats;
       set({ stats: current ? { ...current, isFollowing: true, followerCount: current.followerCount + 1 } : null });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to follow user' });
+      const message = reportError(e, 'No pudimos seguir a este usuario. Intenta de nuevo.');
+      set({ error: message });
       throw e;
     }
   },
 
   unfollow: async (userId: string) => {
     try {
-      const response = await fetch(`${BASE_URL}/follows/${userId}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-      });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      await apiClient.delete<void>(`/follows/${userId}`, { headers: authHeaders() });
       const current = get().stats;
       set({ stats: current ? { ...current, isFollowing: false, followerCount: Math.max(0, current.followerCount - 1) } : null });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to unfollow user' });
+      const message = reportError(e, 'No pudimos dejar de seguir a este usuario. Intenta de nuevo.');
+      set({ error: message });
       throw e;
     }
   },

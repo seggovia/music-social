@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
-  const { updateProfile, isLoading, error } = useUsersStore();
+  const { updateProfile, isLoading } = useUsersStore();
 
   const [displayName, setDisplayName] = useState(profile.display_name ?? '');
   const [bio, setBio] = useState(profile.bio ?? '');
@@ -55,14 +55,12 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
       await updateProfile(profile.username, payload);
       onSaved();
     } catch {
-      // El error ya queda guardado en el store
+      // El toast global muestra el error.
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {error && <p className={styles.error}>{error}</p>}
-
       <div className={styles.fieldGroup}>
         <label className={styles.label} htmlFor="displayName">Display name</label>
         <input

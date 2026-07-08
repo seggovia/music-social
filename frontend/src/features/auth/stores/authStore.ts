@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { reportError } from '@/shared/lib/errors';
 import { authApi } from '../api/authApi';
 import type { AuthResponse, AuthState, LoginFormValues, RegisterFormValues } from '../types';
 
@@ -43,7 +44,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       set({ user: auth.user, accessToken: auth.access_token, refreshToken: auth.refresh_token, isLoading: false });
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : 'Login failed', isLoading: false });
+      const message = reportError(error, 'No pudimos iniciar sesión. Intenta de nuevo.');
+      set({ error: message, isLoading: false });
       throw error;
     }
   },
@@ -59,7 +61,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       set({ user: auth.user, accessToken: auth.access_token, refreshToken: auth.refresh_token, isLoading: false });
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : 'Registration failed', isLoading: false });
+      const message = reportError(error, 'No pudimos crear tu cuenta. Intenta de nuevo.');
+      set({ error: message, isLoading: false });
       throw error;
     }
   },

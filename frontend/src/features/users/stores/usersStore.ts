@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { apiClient } from '@/shared/api/client';
+import { reportError } from '@/shared/lib/errors';
 import type { AffinityUser, GenreUser, TopReviewerUser, UpdateProfileInput, UserProfile, UsersFilter, UserSummary } from '../types';
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 type AnyUserRow = UserSummary | TopReviewerUser | GenreUser | AffinityUser;
 
@@ -17,13 +17,12 @@ interface UsersState {
   updateProfile: (username: string, data: UpdateProfileInput) => Promise<void>;
 }
 
-async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`);
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  return response.json() as Promise<T>;
+function authOptions(): RequestInit {
+  const token = useAuthStore.getState().accessToken;
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 }
 
-export const useUsersStore = create<UsersState>((set) => ({
+export const useUsersStore = create<UsersState>((set, get) => ({
   currentProfile: null,
   list: [],
   activeFilter: 'all',
@@ -31,12 +30,13 @@ export const useUsersStore = create<UsersState>((set) => ({
   error: null,
 
   fetchProfile: async (username: string) => {
-    set({ isLoading: true, error: null });
+    set({ currentProfile: null, isLoading: true, error: null });
     try {
-      const profile = await getJson<UserProfile>(`/users/${username}`);
+      const profile = await apiClient.get<UserProfile>(`/users/${username}`);
       set({ currentProfile: profile, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load profile', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar el perfil. Intenta de nuevo.', () => get().fetchProfile(username));
+      set({ error: message, isLoading: false });
     }
   },
 
@@ -46,46 +46,38 @@ export const useUsersStore = create<UsersState>((set) => ({
       let list: AnyUserRow[] = [];
       switch (filter) {
         case 'top-reviewers':
-          list = await getJson<TopReviewerUser[]>('/users/filters/top-reviewers');
+          list = await apiClient.get<TopReviewerUser[]>('/users/filters/top-reviewers');
           break;
         case 'by-genre':
-          list = await getJson<GenreUser[]>('/users/filters/by-genre');
+          list = await apiClient.get<GenreUser[]>('/users/filters/by-genre');
           break;
         case 'similar':
-          if (currentUsername) list = await getJson<AffinityUser[]>(`/users/filters/similar/${currentUsername}`);
+          if (currentUsername) list = await apiClient.get<AffinityUser[]>(`/users/filters/similar/${currentUsername}`);
           break;
         case 'opposite':
-          if (currentUsername) list = await getJson<AffinityUser[]>(`/users/filters/opposite/${currentUsername}`);
+          if (currentUsername) list = await apiClient.get<AffinityUser[]>(`/users/filters/opposite/${currentUsername}`);
           break;
         default:
-          list = await getJson<UserSummary[]>('/users');
+          list = await apiClient.get<UserSummary[]>('/users');
       }
       set({ list, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load users', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar usuarios. Intenta de nuevo.', () => get().fetchFiltered(filter, currentUsername));
+      set({ error: message, isLoading: false });
     }
   },
 
   updateProfile: async (username: string, data: UpdateProfileInput) => {
     set({ isLoading: true, error: null });
     try {
-      const token = useAuthStore.getState().accessToken;
-      const response = await fetch(`${BASE_URL}/users/${username}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const updated = await response.json() as UserProfile;
+      const updated = await apiClient.put<UserProfile>(`/users/${username}`, data, authOptions());
       set((state) => ({
         currentProfile: state.currentProfile ? { ...state.currentProfile, ...updated } : null,
         isLoading: false,
       }));
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to update profile', isLoading: false });
+      const message = reportError(e, 'No pudimos actualizar el perfil. Intenta de nuevo.');
+      set({ error: message, isLoading: false });
       throw e;
     }
   },

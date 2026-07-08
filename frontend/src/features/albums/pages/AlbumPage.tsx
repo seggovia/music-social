@@ -10,7 +10,7 @@ import styles from './AlbumPage.module.css';
 
 export function AlbumPage() {
   const { id } = useParams();
-  const { currentAlbum, isLoading, error, fetchAlbum } = useAlbumsStore((state) => state);
+  const { currentAlbum, isLoading, fetchAlbum } = useAlbumsStore((state) => state);
   const fetchByAlbum = useReviewsStore((state) => state.fetchByAlbum);
   const user = useAuthStore((state) => state.user);
 
@@ -38,7 +38,6 @@ export function AlbumPage() {
       </article>
     );
   }
-  if (error) return <p className={styles.page} role="alert">{error}</p>;
   if (!currentAlbum) return <p className={styles.page}>No album details available.</p>;
 
   return (
