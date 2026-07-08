@@ -6,7 +6,7 @@ import styles from './SearchPage.module.css';
 
 export function SearchPage() {
   const [query, setQuery] = useState('');
-  const { results, isLoading, search } = useAlbumsStore((state) => state);
+  const { results, isLoading, isLoadingMore, hasMore, search, loadMore } = useAlbumsStore((state) => state);
 
   // Debounce search with 400ms delay
   useEffect(() => {
@@ -42,18 +42,30 @@ export function SearchPage() {
       </form>
 
       <div className={styles.grid}>
-        {isLoading ? (
+        {isLoading && results.length === 0 ? (
           Array.from({ length: 10 }).map((_, i) => (
             <SkeletonAlbumCard key={i} />
           ))
         ) : (
-          results.map((album) => (
-            <AlbumCard key={album.mbid} album={album} />
-          ))
+          <>
+            {results.map((album) => (
+              <AlbumCard key={album.mbid} album={album} />
+            ))}
+            {isLoadingMore && Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonAlbumCard key={`more-${i}`} />
+            ))}
+          </>
         )}
       </div>
 
       {!isLoading && results.length === 0 ? <p className={styles.empty}>No albums found yet.</p> : null}
+      {!isLoading && hasMore ? (
+        <div className={styles.loadMoreRow}>
+          <button type="button" className={styles.loadMoreButton} onClick={() => void loadMore()} disabled={isLoadingMore}>
+            {isLoadingMore ? 'Loading...' : 'Load more'}
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

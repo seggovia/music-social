@@ -1,4 +1,5 @@
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
 import { messagesRepository } from './messages.repository.js';
 
 export const messagesService = {
@@ -14,8 +15,8 @@ export const messagesService = {
     return messagesRepository.getConversations(userId);
   },
 
-  async getMessages(conversationId: string, userId: string) {
-    const messages = await messagesRepository.getMessages(conversationId);
+  async getMessages(conversationId: string, userId: string, pagination: Pagination) {
+    const messages = await messagesRepository.getMessages(conversationId, pagination);
     await messagesRepository.markAsRead(conversationId, userId);
     return messages;
   },

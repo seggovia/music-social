@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { parsePagination } from '../../shared/pagination.js';
 import { albumsService } from './albums.service.js';
 
 export const albumsController = {
@@ -10,7 +11,8 @@ export const albumsController = {
   search: (async (req, res, next) => {
     try {
       const query = String(req.query.q ?? '').trim();
-      const result = await albumsService.search(query);
+      const pagination = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
+      const result = await albumsService.search(query, pagination);
       res.json(result);
     } catch (error) {
       next(error);

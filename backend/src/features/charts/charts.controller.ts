@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { parsePagination } from '../../shared/pagination.js';
 import { chartsService } from './charts.service.js';
 
 export const chartsController = {
@@ -7,22 +8,26 @@ export const chartsController = {
     res.json(result);
   }) as RequestHandler,
 
-  mostReviewed: (async (_req, res) => {
-    const albums = await chartsService.mostReviewed();
+  mostReviewed: (async (req, res) => {
+    const pagination = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
+    const albums = await chartsService.mostReviewed(pagination);
     res.json(albums);
   }) as RequestHandler,
-  topAllTime: (async (_req, res) => {
-    const albums = await chartsService.topAllTime();
+  topAllTime: (async (req, res) => {
+    const pagination = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
+    const albums = await chartsService.topAllTime(pagination);
     res.json(albums);
   }) as RequestHandler,
   topByYear: (async (req, res) => {
     const year = Number(req.params.year);
-    const albums = await chartsService.topByYear(year);
+    const pagination = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
+    const albums = await chartsService.topByYear(year, pagination);
     res.json(albums);
   }) as RequestHandler,
   topByGenre: (async (req, res) => {
     const genreSlug = req.params.genre as string;
-    const albums = await chartsService.topByGenre(genreSlug);
+    const pagination = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
+    const albums = await chartsService.topByGenre(genreSlug, pagination);
     res.json(albums);
   }) as RequestHandler,
 

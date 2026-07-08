@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { parsePagination } from '../../shared/pagination.js';
 import { reviewsService } from './reviews.service.js';
 
 export const reviewsController = {
@@ -20,13 +21,15 @@ export const reviewsController = {
 
   getByAlbum: (async (req, res) => {
     const albumId = req.params.albumId as string;
-    const reviews = await reviewsService.getByAlbum(albumId);
+    const pagination = parsePagination(req.query, { defaultLimit: 10, maxLimit: 50 });
+    const reviews = await reviewsService.getByAlbum(albumId, pagination);
     res.json(reviews);
   }) as RequestHandler,
 
   getByUser: (async (req, res) => {
     const userId = req.params.userId as string;
-    const reviews = await reviewsService.getByUser(userId);
+    const pagination = parsePagination(req.query, { defaultLimit: 10, maxLimit: 50 });
+    const reviews = await reviewsService.getByUser(userId, pagination);
     res.json(reviews);
   }) as RequestHandler,
 

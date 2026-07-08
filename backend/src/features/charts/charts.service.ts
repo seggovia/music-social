@@ -1,21 +1,25 @@
 import { chartsRepository } from './charts.repository.js';
+import type { Pagination } from '../../shared/pagination.js';
 
 export const chartsService = {
   async healthCheck() {
     return chartsRepository.healthCheck();
   },
 
-  async mostReviewed() {
-    return chartsRepository.mostReviewed();
+  async mostReviewed(pagination: Pagination) {
+    return chartsRepository.mostReviewed(pagination);
   },
-   async topAllTime() {
-    return chartsRepository.topAllTime();
+
+  async topAllTime(pagination: Pagination) {
+    return chartsRepository.topAllTime(pagination);
   },
-  async topByYear(year: number) {
-    return chartsRepository.topByYear(year);
+
+  async topByYear(year: number, pagination: Pagination) {
+    return chartsRepository.topByYear(year, pagination);
   },
-  async topByGenre(genreSlug: string) {
-    return chartsRepository.topByGenre(genreSlug);
+
+  async topByGenre(genreSlug: string, pagination: Pagination) {
+    return chartsRepository.topByGenre(genreSlug, pagination);
   },
 
   async listGenres() {

@@ -15,7 +15,7 @@ const TABS: { key: ChartTab; label: string }[] = [
 export function ChartsPage() {
   const {
     activeTab, albums, genres, selectedYear, selectedGenreSlug,
-    isLoading, error, fetchTab, fetchGenres, setYear, setGenre,
+    isLoading, isLoadingMore, hasMore, error, fetchTab, loadMore, fetchGenres, setYear, setGenre,
   } = useChartsStore();
 
   useEffect(() => {
@@ -101,6 +101,16 @@ export function ChartsPage() {
               </div>
             </Link>
           ))}
+          {isLoadingMore && Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonAlbumCard key={`more-${i}`} />
+          ))}
+        </div>
+      )}
+      {!isLoading && !error && hasMore && (
+        <div className={styles.loadMoreRow}>
+          <button type="button" className={styles.loadMoreButton} onClick={() => void loadMore()} disabled={isLoadingMore}>
+            {isLoadingMore ? 'Loading...' : 'Load more'}
+          </button>
         </div>
       )}
     </div>

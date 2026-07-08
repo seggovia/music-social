@@ -14,7 +14,7 @@ const FILTERS: { key: UsersFilter; label: string; needsMe?: boolean }[] = [
 ];
 
 export function UsersListPage() {
-  const { list, activeFilter, isLoading, error, fetchFiltered } = useUsersStore();
+  const { list, activeFilter, isLoading, isLoadingMore, hasMore, error, fetchFiltered, loadMore } = useUsersStore();
   const me = useAuthStore((state) => state.user);
 
   useEffect(() => {
@@ -63,26 +63,36 @@ export function UsersListPage() {
       )}
 
       {!isLoading && !error && list.length > 0 && (
-        <div className={styles.grid}>
-          {list.map((user) => {
-            const initial = user.username.charAt(0).toUpperCase();
-            const badge = renderBadge(user);
-            return (
-              <Link key={user.id} to={`/users/${user.username}`} className={styles.card}>
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt={user.username} className={styles.avatar} />
-                ) : (
-                  <div className={styles.avatarPlaceholder}>{initial}</div>
-                )}
-                <div className={styles.userInfo}>
-                  <p className={styles.username}>{user.username}</p>
-                  {user.display_name && <p className={styles.displayName}>{user.display_name}</p>}
-                  {badge && <p className={styles.badge}>{badge}</p>}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        <>
+          <div className={styles.grid}>
+            {list.map((user) => {
+              const initial = user.username.charAt(0).toUpperCase();
+              const badge = renderBadge(user);
+              return (
+                <Link key={user.id} to={`/users/${user.username}`} className={styles.card}>
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt={user.username} className={styles.avatar} />
+                  ) : (
+                    <div className={styles.avatarPlaceholder}>{initial}</div>
+                  )}
+                  <div className={styles.userInfo}>
+                    <p className={styles.username}>{user.username}</p>
+                    {user.display_name && <p className={styles.displayName}>{user.display_name}</p>}
+                    {badge && <p className={styles.badge}>{badge}</p>}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          {isLoadingMore ? <p className={styles.empty}>Loading more users...</p> : null}
+          {hasMore ? (
+            <div className={styles.loadMoreRow}>
+              <button type="button" className={styles.loadMoreButton} onClick={() => void loadMore()} disabled={isLoadingMore}>
+                {isLoadingMore ? 'Loading...' : 'Load more'}
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   );

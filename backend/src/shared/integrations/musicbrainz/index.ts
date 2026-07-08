@@ -16,14 +16,15 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function searchAlbums(query: string) {
+export async function searchAlbums(query: string, options: { limit?: number; offset?: number } = {}) {
   const params = new URLSearchParams({
     query: `release:${query.trim()}`,
     fmt: 'json',
-    limit: '25',
+    limit: String(options.limit ?? 25),
+    offset: String(options.offset ?? 0),
   });
 
-  return fetchJson<{ releases?: Array<Record<string, unknown>> }>(`/release?${params.toString()}`);
+  return fetchJson<{ count?: number; releases?: Array<Record<string, unknown>> }>(`/release?${params.toString()}`);
 }
 
 export async function getAlbum(mbid: string) {

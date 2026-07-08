@@ -16,7 +16,17 @@ type MessageWithMeta = Message & {
 };
 
 export function MessagesPage() {
-  const { conversations, currentConversation, messages, fetchConversations, fetchMessages, sendMessage } = useMessagesStore();
+  const {
+    conversations,
+    currentConversation,
+    messages,
+    messagesHasMore,
+    isLoadingMore,
+    fetchConversations,
+    fetchMessages,
+    loadOlderMessages,
+    sendMessage,
+  } = useMessagesStore();
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const [inputText, setInputText] = useState('');
@@ -279,6 +289,16 @@ export function MessagesPage() {
             )}
 
             <div className={styles.messagesArea}>
+              {messagesHasMore && (
+                <button
+                  type="button"
+                  className={styles.loadOlderButton}
+                  onClick={() => void loadOlderMessages(currentConversation.id)}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? 'Loading...' : 'Load older messages'}
+                </button>
+              )}
               {displayMessages.map((message) => {
                 const isOwn = message.sender_id === me?.id;
                 const canDeleteForAll = isOwn && Date.now() - new Date(message.created_at).getTime() < 15 * 60 * 1000;

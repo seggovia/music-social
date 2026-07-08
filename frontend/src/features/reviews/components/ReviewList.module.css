@@ -67,3 +67,23 @@
 .deleteButton:hover {
   opacity: 0.7;
 }
+
+.loadMoreButton {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  font-weight: 700;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.loadMoreButton:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-accent);
+}
+
+.loadMoreButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,5 +1,7 @@
 import { supabase } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { createPaginatedResponse } from '../../shared/pagination.js';
 
 export const reviewsRepository = {
   async healthCheck() {
@@ -23,25 +25,37 @@ export const reviewsRepository = {
     return review;
   },
 
-  async findByAlbum(albumId: string) {
-    const { data, error } = await supabase
+  async findByAlbum(albumId: string, pagination?: Pagination) {
+    let query = supabase
       .from('reviews')
-      .select('*, users(username, avatar_url)')
+      .select('*, users(username, avatar_url)', pagination ? { count: 'exact' } : undefined)
       .eq('album_id', albumId)
       .order('created_at', { ascending: false });
 
+    if (pagination) {
+      query = query.range(pagination.offset, pagination.offset + pagination.limit - 1);
+    }
+
+    const { data, error, count } = await query;
     if (error) throw new AppError('Failed to fetch reviews', 500, error);
+    if (pagination) return createPaginatedResponse(data ?? [], count ?? 0, pagination);
     return data ?? [];
   },
 
-  async findByUser(userId: string) {
-    const { data, error } = await supabase
+  async findByUser(userId: string, pagination?: Pagination) {
+    let query = supabase
       .from('reviews')
-      .select('*, albums(title, cover_url, artists(name))')
+      .select('*, albums(title, cover_url, artists(name))', pagination ? { count: 'exact' } : undefined)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
+    if (pagination) {
+      query = query.range(pagination.offset, pagination.offset + pagination.limit - 1);
+    }
+
+    const { data, error, count } = await query;
     if (error) throw new AppError('Failed to fetch user reviews', 500, error);
+    if (pagination) return createPaginatedResponse(data ?? [], count ?? 0, pagination);
     return data ?? [];
   },
 
