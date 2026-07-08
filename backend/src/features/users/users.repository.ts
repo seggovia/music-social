@@ -1,5 +1,7 @@
 import { supabase } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { createPaginatedResponse } from '../../shared/pagination.js';
 
 export const usersRepository = {
   async healthCheck() {
@@ -29,15 +31,15 @@ export const usersRepository = {
     return data;
   },
 
-  async list() {
-    const { data, error } = await supabase
+  async list(pagination: Pagination) {
+    const { data, error, count } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url')
+      .select('id, username, display_name, avatar_url', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(50);
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) throw new AppError('Failed to fetch users', 500, error);
-    return data ?? [];
+    return createPaginatedResponse(data ?? [], count ?? 0, pagination);
   },
 
   async countReviewsByUser(userId: string) {

@@ -1,4 +1,5 @@
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
 import { albumsRepository } from '../albums/albums.repository.js';
 import { reviewsRepository } from './reviews.repository.js';
 
@@ -29,12 +30,12 @@ export const reviewsService = {
     });
   },
 
-  async getByAlbum(albumId: string) {
-    return reviewsRepository.findByAlbum(albumId);
+  async getByAlbum(albumId: string, pagination: Pagination) {
+    return reviewsRepository.findByAlbum(albumId, pagination);
   },
 
-  async getByUser(userId: string) {
-    return reviewsRepository.findByUser(userId);
+  async getByUser(userId: string, pagination: Pagination) {
+    return reviewsRepository.findByUser(userId, pagination);
   },
 
   async getById(id: string) {

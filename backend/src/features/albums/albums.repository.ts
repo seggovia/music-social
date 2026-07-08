@@ -1,4 +1,6 @@
 import { supabase } from '../../config/supabase.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { createPaginatedResponse } from '../../shared/pagination.js';
 
 interface ArtistJoin {
   name?: string | null;
@@ -68,18 +70,21 @@ export const albumsRepository = {
     };
   },
 
-  async search(query: string) {
-    const { data, error } = await supabase
+  async search(query: string, pagination: Pagination) {
+    const { data, error, count } = await supabase
       .from('albums')
-      .select('*, artists(name, musicbrainz_id)')
+      .select('*, artists(name, musicbrainz_id)', { count: 'exact' })
       .ilike('title', `%${query}%`)
-      .limit(20);
+      .order('title', { ascending: true })
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) throw error;
-    return (data ?? []).map((record: AlbumRecord) => ({
+    const records = (data ?? []).map((record: AlbumRecord) => ({
       ...record,
       artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
     })) as AlbumRecord[];
+
+    return createPaginatedResponse(records, count ?? 0, pagination);
   },
 
   async create(data: {

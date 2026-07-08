@@ -3,15 +3,15 @@ import { useAuthStore } from '@/features/auth/stores/authStore';
 import styles from './ReviewList.module.css';
 
 export function ReviewList() {
-  const { reviews, isLoading, remove } = useReviewsStore();
+  const { reviews, total, isLoading, isLoadingMore, hasMore, loadMore, remove } = useReviewsStore();
   const user = useAuthStore((state) => state.user);
 
-  if (isLoading) return <p className={styles.loading}>Loading reviews...</p>;
+  if (isLoading && reviews.length === 0) return <p className={styles.loading}>Loading reviews...</p>;
   if (reviews.length === 0) return <p className={styles.empty}>No reviews yet. Be the first!</p>;
 
   return (
     <section className={styles.section}>
-      <h3 className={styles.heading}>Reviews ({reviews.length})</h3>
+      <h3 className={styles.heading}>Reviews ({total})</h3>
       {reviews.map((review) => (
         <article key={review.id} className={styles.card}>
           <div className={styles.cardHeader}>
@@ -31,6 +31,12 @@ export function ReviewList() {
           )}
         </article>
       ))}
+      {isLoadingMore ? <p className={styles.loading}>Loading more reviews...</p> : null}
+      {hasMore ? (
+        <button type="button" className={styles.loadMoreButton} onClick={() => void loadMore()} disabled={isLoadingMore}>
+          {isLoadingMore ? 'Loading...' : 'Load more'}
+        </button>
+      ) : null}
     </section>
   );
 }

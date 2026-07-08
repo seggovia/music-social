@@ -1,5 +1,7 @@
 import { supabase } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { createPaginatedResponse } from '../../shared/pagination.js';
 
 export const messagesRepository = {
   async healthCheck() {
@@ -64,18 +66,19 @@ export const messagesRepository = {
     return data ?? [];
   },
 
-  async getMessages(conversationId: string) {
-    const { data, error } = await supabase
+  async getMessages(conversationId: string, pagination: Pagination) {
+    const { data, error, count } = await supabase
       .from('messages')
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)', { count: 'exact' })
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.limit - 1);
 
     if (error) {
       throw new AppError('Failed to fetch messages', 500, error);
     }
 
-    return data ?? [];
+    return createPaginatedResponse([...(data ?? [])].reverse(), count ?? 0, pagination);
   },
 
   async sendMessage(conversationId: string, senderId: string, body: string) {

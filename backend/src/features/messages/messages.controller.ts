@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express';
+import { parsePagination } from '../../shared/pagination.js';
 import { messagesService } from './messages.service.js';
 
 export const messagesController = {
@@ -23,7 +24,8 @@ export const messagesController = {
   getMessages: (async (req, res) => {
     const conversationId = req.params.conversationId as string;
     const userId = req.userId!;
-    const messages = await messagesService.getMessages(conversationId, userId);
+    const pagination = parsePagination(req.query, { defaultLimit: 30, maxLimit: 100 });
+    const messages = await messagesService.getMessages(conversationId, userId, pagination);
     res.json(messages);
   }) as RequestHandler,
 

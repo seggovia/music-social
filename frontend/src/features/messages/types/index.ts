@@ -29,9 +29,14 @@ export interface MessagesState {
   currentConversation: Conversation | null;
   messages: Message[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
+  messagesPage: number;
+  messagesHasMore: boolean;
+  messagesTotal: number;
   fetchConversations: () => Promise<void>;
   startConversation: (targetUserId: string) => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
+  loadOlderMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, body: string) => Promise<void>;
 }

@@ -3,6 +3,9 @@ import { getCoverArt } from '../../shared/integrations/cover-art-archive/index.j
 import { getAlbum, getArtist, searchAlbums } from '../../shared/integrations/musicbrainz/index.js';
 import { albumsRepository } from './albums.repository.js';
 import { getAlbumGenres } from '../../shared/integrations/lastfm/index.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { createPaginatedResponse } from '../../shared/pagination.js';
+
 function normalizeRelease(release: Record<string, unknown>) {
   const artistCredit = Array.isArray(release['artist-credit']) ? (release['artist-credit'] as Array<Record<string, unknown>>) : [];
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
@@ -42,60 +45,26 @@ export const albumsService = {
     return albumsRepository.healthCheck();
   },
 
-  async search(query: string) {
-    if (!query.trim()) return [];
+  async search(query: string, pagination: Pagination) {
+    if (!query.trim()) return createPaginatedResponse([], 0, pagination);
 
-    // Search in cache first with parallel queries
-    const { supabase } = await import('../../config/supabase.js');
-    const [{ data: exactMatchAlbums, error: exactError }, { data: partialMatchAlbums, error: partialError }] = await Promise.all([
-      supabase
-        .from('albums')
-        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
-        .ilike('title', `${query}%`)
-        .limit(25),
-      supabase
-        .from('albums')
-        .select('id, musicbrainz_id, title, cover_url, release_date, artists(name, musicbrainz_id)')
-        .ilike('title', `%${query}%`)
-        .limit(25),
-    ]);
-
-    // Combine and deduplicate results, prioritizing exact matches
-    const seenIds = new Set<number>();
-    const combinedAlbums: any[] = [];
-
-    if (!exactError && Array.isArray(exactMatchAlbums)) {
-      for (const album of exactMatchAlbums) {
-        if (!seenIds.has(album.id)) {
-          seenIds.add(album.id);
-          combinedAlbums.push(album);
-        }
-      }
+    const cached = await albumsRepository.search(query, pagination);
+    if (cached.meta.total > 0) {
+      return createPaginatedResponse(
+        cached.data.map((album) => ({
+          mbid: album.musicbrainz_id,
+          title: album.title,
+          artist: album.artists?.name ?? 'Unknown Artist',
+          artistMbid: album.artists?.musicbrainz_id ?? null,
+          coverUrl: album.cover_url,
+          year: album.release_date ? new Date(album.release_date).getFullYear() : null,
+        })),
+        cached.meta.total,
+        pagination,
+      );
     }
 
-    if (!partialError && Array.isArray(partialMatchAlbums)) {
-      for (const album of partialMatchAlbums) {
-        if (!seenIds.has(album.id)) {
-          seenIds.add(album.id);
-          combinedAlbums.push(album);
-        }
-      }
-    }
-
-    if (combinedAlbums.length >= 1) {
-      // Return cached results if 1 or more found
-      return combinedAlbums.map((album: any) => ({
-        mbid: album.musicbrainz_id,
-        title: album.title,
-        artist: album.artists?.name ?? 'Unknown Artist',
-        artistMbid: album.artists?.musicbrainz_id ?? null,
-        coverUrl: album.cover_url,
-        year: album.release_date ? new Date(album.release_date).getFullYear() : null,
-      }));
-    }
-
-    // If less than 5 cached results, search MusicBrainz
-    const response = await searchAlbums(query);
+    const response = await searchAlbums(query, { limit: pagination.limit, offset: pagination.offset });
     const releases = Array.isArray(response.releases) ? response.releases : [];
 
     const results = await Promise.all(
@@ -119,7 +88,7 @@ export const albumsService = {
       }),
     );
 
-    return results;
+    return createPaginatedResponse(results, response.count ?? results.length, pagination);
   },
 
   async getOrCache(mbid: string) {

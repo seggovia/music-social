@@ -1,4 +1,6 @@
 import { AppError } from '../../shared/errors/AppError.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { paginateArray } from '../../shared/pagination.js';
 import { reviewsRepository } from '../reviews/reviews.repository.js';
 import { usersRepository } from './users.repository.js';
 
@@ -18,7 +20,7 @@ export const usersService = {
     const user = await usersRepository.findByUsername(username);
     if (!user) throw new AppError('User not found', 404);
 
-    const reviews = await reviewsRepository.findByUser(user.id);
+    const reviews = await reviewsRepository.findByUser(user.id) as Array<{ rating: number }>;
     const reviewCount = reviews.length;
     const avgRating = reviewCount > 0
       ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviewCount
@@ -32,26 +34,27 @@ export const usersService = {
     };
   },
 
-  async list() {
-    return usersRepository.list();
+  async list(pagination: Pagination) {
+    return usersRepository.list(pagination);
   },
 
   /** Filtro: top reviewers */
-  async listTopReviewers() {
+  async listTopReviewers(pagination: Pagination) {
     const users = await usersRepository.listWithReviewCounts();
-    return users
+    const sorted = users
       .filter((u) => u.reviewCount > 0)
       .sort((a, b) => b.reviewCount - a.reviewCount);
+    return paginateArray(sorted, pagination);
   },
 
   /** Filtro: agrupados por género favorito */
-  async listByGenre() {
+  async listByGenre(pagination: Pagination) {
     const users = await usersRepository.listWithTopGenre();
-    return users.filter((u) => u.topGenre !== null);
+    return paginateArray(users.filter((u) => u.topGenre !== null), pagination);
   },
 
   /** Filtro: usuarios con gustos similares (afinidad) u opuestos, relativos a `username` */
-  async listByAffinity(username: string, mode: 'similar' | 'opposite') {
+  async listByAffinity(username: string, mode: 'similar' | 'opposite', pagination: Pagination) {
     const me = await usersRepository.findByUsername(username);
     if (!me) throw new AppError('User not found', 404);
 
@@ -63,7 +66,7 @@ export const usersService = {
     }
 
     if (myRatings.size === 0) {
-      return [];
+      return paginateArray([], pagination);
     }
 
     // album_id -> { userId -> rating }, excluyendo a "me"
@@ -105,7 +108,7 @@ export const usersService = {
       mode === 'similar' ? a.avgRatingDiff - b.avgRatingDiff : b.avgRatingDiff - a.avgRatingDiff,
     );
 
-    return results;
+    return paginateArray(results, pagination);
   },
   async updateProfile(requesterId: string, username: string, data: {
     display_name?: string | null;

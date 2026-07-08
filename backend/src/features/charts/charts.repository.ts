@@ -1,4 +1,6 @@
 import { supabase } from '../../config/supabase.js';
+import type { Pagination } from '../../shared/pagination.js';
+import { paginateArray } from '../../shared/pagination.js';
 
 interface ReviewedAlbumRow {
   id: string;
@@ -34,37 +36,39 @@ export const chartsRepository = {
   },
 
   /** Most reviewed: álbumes ordenados por cantidad de reviews */
-  async mostReviewed(limit = 20) {
+  async mostReviewed(pagination: Pagination) {
     const { data, error } = await supabase
       .from('albums')
       .select('id, title, cover_url, release_date, artists(name), reviews(rating)');
 
     if (error) throw error;
 
-    return (data ?? [])
+    const albums = (data ?? [])
       .map((row) => mapAlbumRow(row as ReviewedAlbumRow))
       .filter((a) => a.reviewCount >= 1)
-      .sort((a, b) => b.reviewCount - a.reviewCount)
-      .slice(0, limit);
+      .sort((a, b) => b.reviewCount - a.reviewCount);
+
+    return paginateArray(albums, pagination);
   },
 
   /** Top albums de todos los tiempos: ordenados por rating promedio (mínimo 1 review) */
-  async topAllTime(limit = 20) {
+  async topAllTime(pagination: Pagination) {
     const { data, error } = await supabase
       .from('albums')
       .select('id, title, cover_url, release_date, artists(name), reviews(rating)');
 
     if (error) throw error;
 
-    return (data ?? [])
+    const albums = (data ?? [])
       .map((row) => mapAlbumRow(row as ReviewedAlbumRow))
       .filter((a) => a.reviewCount >= 1)
-      .sort((a, b) => b.avgRating - a.avgRating)
-      .slice(0, limit);
+      .sort((a, b) => b.avgRating - a.avgRating);
+
+    return paginateArray(albums, pagination);
   },
 
   /** Top albums lanzados en un año específico, ordenados por rating promedio */
-  async topByYear(year: number, limit = 20) {
+  async topByYear(year: number, pagination: Pagination) {
     const { data, error } = await supabase
       .from('albums')
       .select('id, title, cover_url, release_date, artists(name), reviews(rating)')
@@ -73,15 +77,16 @@ export const chartsRepository = {
 
     if (error) throw error;
 
-    return (data ?? [])
+    const albums = (data ?? [])
       .map((row) => mapAlbumRow(row as ReviewedAlbumRow))
       .filter((a) => a.reviewCount >= 1)
-      .sort((a, b) => b.avgRating - a.avgRating)
-      .slice(0, limit);
+      .sort((a, b) => b.avgRating - a.avgRating);
+
+    return paginateArray(albums, pagination);
   },
 
   /** Top albums de un género específico, ordenados por rating promedio */
-  async topByGenre(genreSlug: string, limit = 20) {
+  async topByGenre(genreSlug: string, pagination: Pagination) {
     const { data: genre, error: genreError } = await supabase
       .from('genres')
       .select('id, name')
@@ -89,7 +94,7 @@ export const chartsRepository = {
       .maybeSingle();
 
     if (genreError) throw genreError;
-    if (!genre) return [];
+    if (!genre) return paginateArray([], pagination);
 
     const { data, error } = await supabase
       .from('album_genres')
@@ -98,13 +103,14 @@ export const chartsRepository = {
 
     if (error) throw error;
 
-    return (data ?? [])
+    const albums = (data ?? [])
       .map((row: Record<string, unknown>) => row.albums as ReviewedAlbumRow | null)
       .filter((album): album is ReviewedAlbumRow => album !== null)
       .map((album) => mapAlbumRow(album))
       .filter((a) => a.reviewCount >= 1)
-      .sort((a, b) => b.avgRating - a.avgRating)
-      .slice(0, limit);
+      .sort((a, b) => b.avgRating - a.avgRating);
+
+    return paginateArray(albums, pagination);
   },
 
   /** Lista de géneros disponibles para mostrar en un selector */
