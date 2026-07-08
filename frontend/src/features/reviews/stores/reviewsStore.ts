@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { reportError } from '@/shared/lib/errors';
 import { reviewsApi } from '../api/reviewsApi';
 import type { CreateReviewInput, Review, UpdateReviewInput } from '../types';
 
@@ -13,7 +14,7 @@ interface ReviewsState {
   remove: (id: string) => Promise<void>;
 }
 
-export const useReviewsStore = create<ReviewsState>((set) => ({
+export const useReviewsStore = create<ReviewsState>((set, get) => ({
   reviews: [],
   isLoading: false,
   error: null,
@@ -23,8 +24,9 @@ export const useReviewsStore = create<ReviewsState>((set) => ({
     try {
       const reviews = await reviewsApi.getByAlbum(albumId);
       set({ reviews, isLoading: false });
-    } catch {
-      set({ error: 'Failed to load reviews', isLoading: false });
+    } catch (error) {
+      const message = reportError(error, 'No pudimos cargar las reseñas. Intenta de nuevo.', () => get().fetchByAlbum(albumId));
+      set({ error: message, isLoading: false });
     }
   },
 
@@ -33,8 +35,9 @@ export const useReviewsStore = create<ReviewsState>((set) => ({
     try {
       const reviews = await reviewsApi.getByUser(userId);
       set({ reviews, isLoading: false });
-    } catch {
-      set({ error: 'Failed to load reviews', isLoading: false });
+    } catch (error) {
+      const message = reportError(error, 'No pudimos cargar las reseñas. Intenta de nuevo.', () => get().fetchByUser(userId));
+      set({ error: message, isLoading: false });
     }
   },
 
@@ -44,8 +47,8 @@ export const useReviewsStore = create<ReviewsState>((set) => ({
       const review = await reviewsApi.create(data);
       set((state) => ({ reviews: [review, ...state.reviews], isLoading: false }));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to create review';
-      set({ error: msg, isLoading: false });
+      const message = reportError(e, 'No pudimos publicar la reseña. Intenta de nuevo.');
+      set({ error: message, isLoading: false });
       throw e;
     }
   },
@@ -56,8 +59,9 @@ export const useReviewsStore = create<ReviewsState>((set) => ({
       set((state) => ({
         reviews: state.reviews.map((r) => (r.id === id ? updated : r)),
       }));
-    } catch {
-      set({ error: 'Failed to update review' });
+    } catch (error) {
+      const message = reportError(error, 'No pudimos actualizar la reseña. Intenta de nuevo.');
+      set({ error: message });
     }
   },
 
@@ -65,8 +69,9 @@ export const useReviewsStore = create<ReviewsState>((set) => ({
     try {
       await reviewsApi.delete(id);
       set((state) => ({ reviews: state.reviews.filter((r) => r.id !== id) }));
-    } catch {
-      set({ error: 'Failed to delete review' });
+    } catch (error) {
+      const message = reportError(error, 'No pudimos eliminar la reseña. Intenta de nuevo.');
+      set({ error: message });
     }
   },
 }));

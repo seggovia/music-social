@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { ROUTES } from '@/shared/lib/constants';
+import { ErrorToast } from './ErrorToast';
 import styles from './Layout.module.css';
 
 export function Layout() {
@@ -89,6 +90,7 @@ export function Layout() {
       <main className={styles.main}>
         <Outlet />
       </main>
+      <ErrorToast />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
+import { apiClient } from '@/shared/api/client';
+import { reportError } from '@/shared/lib/errors';
 import type { ChartAlbum, ChartTab, Genre } from '../types';
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 interface ChartsState {
   activeTab: ChartTab;
@@ -15,12 +15,6 @@ interface ChartsState {
   fetchGenres: () => Promise<void>;
   setYear: (year: number) => void;
   setGenre: (slug: string) => void;
-}
-
-async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`);
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  return response.json() as Promise<T>;
 }
 
 export const useChartsStore = create<ChartsState>((set, get) => ({
@@ -38,31 +32,33 @@ export const useChartsStore = create<ChartsState>((set, get) => ({
       let albums: ChartAlbum[] = [];
       switch (tab) {
         case 'most-reviewed':
-          albums = await getJson<ChartAlbum[]>('/charts/most-reviewed');
+          albums = await apiClient.get<ChartAlbum[]>('/charts/most-reviewed');
           break;
         case 'top-all-time':
-          albums = await getJson<ChartAlbum[]>('/charts/top-all-time');
+          albums = await apiClient.get<ChartAlbum[]>('/charts/top-all-time');
           break;
         case 'top-by-year':
-          albums = await getJson<ChartAlbum[]>(`/charts/top-by-year/${get().selectedYear}`);
+          albums = await apiClient.get<ChartAlbum[]>(`/charts/top-by-year/${get().selectedYear}`);
           break;
         case 'top-by-genre': {
           const slug = get().selectedGenreSlug;
-          if (slug) albums = await getJson<ChartAlbum[]>(`/charts/top-by-genre/${slug}`);
+          if (slug) albums = await apiClient.get<ChartAlbum[]>(`/charts/top-by-genre/${slug}`);
           break;
         }
       }
       set({ albums, isLoading: false });
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to load chart', isLoading: false });
+      const message = reportError(e, 'No pudimos cargar el ranking. Intenta de nuevo.', () => get().fetchTab(tab));
+      set({ error: message, isLoading: false });
     }
   },
 
   fetchGenres: async () => {
     try {
-      const genres = await getJson<Genre[]>('/charts/genres');
+      const genres = await apiClient.get<Genre[]>('/charts/genres');
       set({ genres, selectedGenreSlug: genres[0]?.slug ?? null });
-    } catch {
+    } catch (e) {
+      reportError(e, 'No pudimos cargar los géneros. Intenta de nuevo.', () => get().fetchGenres());
       set({ genres: [] });
     }
   },

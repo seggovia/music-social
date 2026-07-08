@@ -4,7 +4,7 @@ import { useArtistsStore } from '../../artists/stores/artistsStore';
 import type { ArtistAlbum } from '../types';
 export function ArtistPage() {
   const { mbid } = useParams();
-  const { currentArtist, isLoading, error, fetchArtist } = useArtistsStore();
+  const { currentArtist, isLoading, fetchArtist } = useArtistsStore();
 
   useEffect(() => {
     if (!mbid) return;
@@ -13,7 +13,6 @@ export function ArtistPage() {
 
   if (!mbid) return <p>Artist not found.</p>;
   if (isLoading) return <p>Loading artist...</p>;
-  if (error) return <p role="alert">{error}</p>;
   if (!currentArtist) return <p>No artist details available.</p>;
 
   return (

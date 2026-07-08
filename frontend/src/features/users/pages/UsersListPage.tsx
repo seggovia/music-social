@@ -57,7 +57,6 @@ export function UsersListPage() {
       </div>
 
       {isLoading && <p className={styles.empty}>Loading users...</p>}
-      {error && <p className={styles.empty} role="alert">{error}</p>}
 
       {!isLoading && !error && list.length === 0 && (
         <p className={styles.empty}>No users found for this filter.</p>

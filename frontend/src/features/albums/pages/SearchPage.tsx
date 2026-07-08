@@ -6,7 +6,7 @@ import styles from './SearchPage.module.css';
 
 export function SearchPage() {
   const [query, setQuery] = useState('');
-  const { results, isLoading, error, search } = useAlbumsStore((state) => state);
+  const { results, isLoading, search } = useAlbumsStore((state) => state);
 
   // Debounce search with 400ms delay
   useEffect(() => {
@@ -40,8 +40,6 @@ export function SearchPage() {
           {isLoading ? 'Searching...' : 'Search'}
         </button>
       </form>
-
-      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
 
       <div className={styles.grid}>
         {isLoading ? (

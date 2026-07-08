@@ -10,7 +10,7 @@ interface Props {
 export function ReviewForm({ albumId, onSuccess }: Props) {
   const [rating, setRating] = useState<number>(5);
   const [content, setContent] = useState('');
-  const { create, isLoading, error } = useReviewsStore();
+  const { create, isLoading } = useReviewsStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,14 +20,13 @@ export function ReviewForm({ albumId, onSuccess }: Props) {
       setRating(5);
       onSuccess?.();
     } catch {
-      // error ya está en el store
+      // El toast global muestra el error.
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <h3 className={styles.heading}>Write a review</h3>
-      {error && <p className={styles.error}>{error}</p>}
       <div className={styles.field}>
         <label htmlFor="rating" className={styles.label}>
           Rating (0.5 – 5):

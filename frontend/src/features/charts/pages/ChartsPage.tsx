@@ -76,7 +76,6 @@ export function ChartsPage() {
           ))}
         </div>
       )}
-      {error && <p className={styles.empty} role="alert">{error}</p>}
 
       {!isLoading && !error && albums.length === 0 && (
         <p className={styles.empty}>No albums found for this chart yet.</p>
