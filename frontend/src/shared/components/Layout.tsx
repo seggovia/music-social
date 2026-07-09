@@ -41,7 +41,8 @@ export function Layout() {
       <header className={styles.header}>
         <nav className={styles.nav}>
           <Link to={ROUTES.HOME} className={styles.brand}>
-            music<span>social</span>
+            <span className={styles.brandMark}>ms</span>
+            <span className={styles.brandText}>music<span>social</span></span>
           </Link>
 
           <div className={styles.links}>
@@ -60,8 +61,15 @@ export function Layout() {
                   type="button"
                   className={styles.userMenuTrigger}
                   onClick={() => setMenuOpen((open) => !open)}
+                  aria-expanded={menuOpen}
                 >
-                  {user.username}
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="" className={styles.userAvatar} />
+                  ) : (
+                    <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
+                  )}
+                  <span className={styles.userName}>{user.username}</span>
+                  <span className={styles.userChevron}>⌄</span>
                 </button>
                 {menuOpen && (
                   <div className={styles.dropdown}>

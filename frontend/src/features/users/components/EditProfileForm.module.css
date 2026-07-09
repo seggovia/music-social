@@ -1,10 +1,11 @@
 .form {
   margin-top: var(--space-8);
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   max-width: 500px;
+  box-shadow: var(--shadow-sm);
 }
 
 .fieldGroup {
@@ -21,13 +22,13 @@
 .input,
 .textarea {
   width: 100%;
-  background: var(--color-surface-2);
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .input::placeholder,
@@ -35,11 +36,17 @@
   color: var(--color-text-subtle);
 }
 
+.input:hover,
+.textarea:hover {
+  border-color: var(--color-border-hover);
+}
+
 .input:focus,
 .textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
+  background: var(--color-surface-overlay);
+  box-shadow: var(--shadow-focus);
 }
 
 .sectionTitle {
@@ -73,35 +80,50 @@
 }
 
 .saveButton {
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
+  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
+  color: var(--color-text-inverse);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  transition: background var(--transition-fast);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.24);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
-.saveButton:hover {
-  background: var(--color-accent-dim);
+.saveButton:hover:not(:disabled) {
+  box-shadow: 0 14px 34px rgba(108, 92, 231, 0.34);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.saveButton:active:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.22);
+  transform: translateY(0) scale(0.99);
 }
 
 .saveButton:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
+  filter: saturate(0.7);
 }
 
 .cancelButton {
-  background: transparent;
+  background: color-mix(in srgb, var(--color-surface-raised) 76%, transparent);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
 .cancelButton:hover {
   border-color: var(--color-border-hover);
+  background: var(--color-surface-elevated);
   color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.cancelButton:active {
+  transform: translateY(0) scale(0.99);
 }
