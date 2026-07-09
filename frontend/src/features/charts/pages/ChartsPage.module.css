@@ -18,25 +18,28 @@
 }
 
 .tab {
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 700;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  border-radius: var(--radius-pill);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.tab:hover {
+.tab:hover:not(:disabled) {
+  background: var(--color-surface-elevated);
   border-color: var(--color-border-hover);
   color: var(--color-text);
+  transform: translateY(-1px);
 }
 
 .tabActive {
-  background: var(--color-accent);
+  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-text-inverse);
+  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.2);
 }
 
 .subFilters {
@@ -47,22 +50,40 @@
 }
 
 .select {
-  background: var(--color-surface);
+  min-height: 38px;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .yearInput {
   width: 90px;
-  background: var(--color-surface);
+  min-height: 38px;
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.select:hover,
+.yearInput:hover {
+  border-color: var(--color-border-hover);
+}
+
+.select:focus,
+.yearInput:focus {
+  outline: none;
+  background: var(--color-surface-elevated);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
 }
 
 .list {
@@ -75,18 +96,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .row:hover {
   border-color: var(--color-border-hover);
-  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .rank {
@@ -105,6 +128,7 @@
   border-radius: var(--radius-md);
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
 .info {
@@ -152,21 +176,28 @@
 }
 
 .loadMoreButton {
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
   border: 1px solid var(--color-border);
   color: var(--color-text);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-6);
   font-weight: 700;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.loadMoreButton:hover {
-  background: var(--color-surface-2);
+.loadMoreButton:hover:not(:disabled) {
+  background: var(--color-surface-elevated);
   border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.loadMoreButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
 }
 
 .loadMoreButton:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
