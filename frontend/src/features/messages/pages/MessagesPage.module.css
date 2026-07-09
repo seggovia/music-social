@@ -166,10 +166,62 @@
   color: var(--color-text);
 }
 
+.deletedBubble {
+  background: #e5e7eb;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .messageMeta {
   font-size: 0.75rem;
   opacity: 0.8;
   margin-top: 0.3rem;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: min(280px, 62vw);
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.editButton,
+.editButtonSecondary {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.65rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editButton {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+.editButtonSecondary {
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .menuButton {
@@ -204,8 +256,18 @@
   border-radius: var(--radius-md);
   padding: 4px 0;
   z-index: 10;
-  min-width: 160px;
+  min-width: 190px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.contextMenuOwn {
+  left: -8px;
+  right: auto;
+}
+
+.contextMenuAbove {
+  top: auto;
+  bottom: 24px;
 }
 
 .contextMenuItem {
@@ -218,6 +280,7 @@
   cursor: pointer;
   color: var(--color-text);
   font-size: var(--text-sm);
+  white-space: nowrap;
 }
 
 .contextMenuItem:hover {

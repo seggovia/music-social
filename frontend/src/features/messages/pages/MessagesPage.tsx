@@ -1,19 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useMessagesStore } from '../stores/messagesStore';
-import type { Message } from '../types';
+import type { Message, MessageDeleteMode } from '../types';
 import { useAuthStore } from '@/features/auth/stores/authStore';
-import { apiClient } from '@/shared/api/client';
-import { reportError } from '@/shared/lib/errors';
 import styles from './MessagesPage.module.css';
 
-type MessageWithMeta = Message & {
-  pinned?: boolean;
-  pinned_at?: string | null;
-  edited_at?: string | null;
-  deleted_for_all?: boolean;
-  deleted_for_sender?: boolean;
-};
+const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const UNSEND_FOR_ALL_WINDOW_MS = 15 * 60 * 1000;
+
+function getMessageAgeMs(message: Message, now: number) {
+  const createdAt = new Date(message.created_at).getTime();
+  return Number.isNaN(createdAt) ? Number.POSITIVE_INFINITY : now - createdAt;
+}
 
 export function MessagesPage() {
   const {
@@ -26,23 +24,33 @@ export function MessagesPage() {
     fetchMessages,
     loadOlderMessages,
     sendMessage,
+    editMessage,
+    deleteMessage,
+    togglePin,
+    fetchPinnedMessages,
   } = useMessagesStore();
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const [inputText, setInputText] = useState('');
-  const [localMessages, setLocalMessages] = useState<MessageWithMeta[]>([]);
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingBody, setEditingBody] = useState('');
   const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | null>(null);
-  const [pinnedMessages, setPinnedMessages] = useState<MessageWithMeta[]>([]);
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     void fetchConversations();
   }, [fetchConversations]);
 
   useEffect(() => {
-    setLocalMessages((messages as MessageWithMeta[]) ?? []);
+    setLocalMessages(messages ?? []);
   }, [messages]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setNow(Date.now()), 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (!currentConversation) {
@@ -52,18 +60,15 @@ export function MessagesPage() {
 
     const loadPinnedMessages = async () => {
       try {
-        const data = await apiClient.get<MessageWithMeta[]>(
-          `/messages/${currentConversation.id}/pinned`,
-          authOptions(),
-        );
-        setPinnedMessages(data.slice(0, 2));
-      } catch (error) {
-        reportError(error, 'No pudimos cargar los mensajes fijados. Intenta de nuevo.', () => loadPinnedMessages());
+        const data = await fetchPinnedMessages(currentConversation.id);
+        setPinnedMessages(data.filter((message) => !(message.deleted_for_sender && message.sender_id === user?.id)).slice(0, 2));
+      } catch {
+        setPinnedMessages([]);
       }
     };
 
     void loadPinnedMessages();
-  }, [currentConversation]);
+  }, [currentConversation, fetchPinnedMessages, user?.id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,11 +96,6 @@ export function MessagesPage() {
 
   const me = useMemo(() => user ?? null, [user]);
 
-  const authOptions = (): RequestInit => {
-    const token = useAuthStore.getState().accessToken;
-    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-  };
-
   const handleSelectConversation = async (conversationId: string) => {
     const conversation = conversations.find((item) => item.id === conversationId);
     if (!conversation) return;
@@ -108,13 +108,18 @@ export function MessagesPage() {
     const trimmed = inputText.trim();
     if (!trimmed || !currentConversation || !me) return;
 
-    const tempMessage: MessageWithMeta = {
+    const tempMessage: Message = {
       id: `temp-${Date.now()}`,
       conversation_id: currentConversation.id,
       sender_id: me.id,
       body: trimmed,
       read_at: null,
       created_at: new Date().toISOString(),
+      edited_at: null,
+      deleted_for_sender: false,
+      deleted_for_all: false,
+      pinned: false,
+      pinned_at: null,
       sender: {
         id: me.id,
         username: me.username ?? 'You',
@@ -139,9 +144,10 @@ export function MessagesPage() {
     }
   };
 
-  const handleStartEdit = (message: MessageWithMeta) => {
+  const handleStartEdit = (message: Message) => {
     setEditingMessageId(message.id);
     setEditingBody(message.body);
+    setActiveMenuMessageId(null);
   };
 
   const handleCancelEdit = () => {
@@ -149,58 +155,60 @@ export function MessagesPage() {
     setEditingBody('');
   };
 
-  const handleEditSave = async (message: MessageWithMeta) => {
+  const handleEditSave = async (message: Message) => {
     if (!currentConversation) return;
     const trimmed = editingBody.trim();
     if (!trimmed) return;
+    if (trimmed === message.body) {
+      handleCancelEdit();
+      return;
+    }
 
     try {
-      const updatedMessage = await apiClient.put<MessageWithMeta>(
-        `/messages/${currentConversation.id}/messages/${message.id}`,
-        { body: trimmed },
-        authOptions(),
-      );
+      const updatedMessage = await editMessage(currentConversation.id, message.id, trimmed);
       setLocalMessages((prev) => prev.map((item) => (item.id === message.id ? updatedMessage : item)));
       setEditingMessageId(null);
       setEditingBody('');
-    } catch (error) {
-      reportError(error, 'No pudimos editar el mensaje. Intenta de nuevo.');
+    } catch {
+      // The store already reports the API error.
     }
   };
 
-  const handleDelete = async (message: MessageWithMeta, mode: 'sender' | 'all') => {
+  const handleDelete = async (message: Message, mode: MessageDeleteMode) => {
     if (!currentConversation) return;
 
+    const confirmationMessage = mode === 'sender'
+      ? 'Anular envio para ti? El mensaje se ocultara de tu conversacion.'
+      : 'Anular envio para ambos? Esta accion no se puede deshacer.';
+
+    if (!window.confirm(confirmationMessage)) return;
+
     try {
-      const updatedMessage = await apiClient.delete<MessageWithMeta>(
-        `/messages/${currentConversation.id}/messages/${message.id}`,
-        { ...authOptions(), body: JSON.stringify({ mode }) },
-      );
+      const updatedMessage = await deleteMessage(currentConversation.id, message.id, mode);
       if (mode === 'sender') {
         setLocalMessages((prev) => prev.filter((item) => item.id !== message.id));
+        setPinnedMessages((prev) => prev.filter((item) => item.id !== message.id));
       } else {
         setLocalMessages((prev) => prev.map((item) => (item.id === message.id ? { ...item, ...updatedMessage, deleted_for_all: true, deleted_for_sender: false } : item)));
+        setPinnedMessages((prev) => prev.filter((item) => item.id !== message.id));
       }
       setActiveMenuMessageId(null);
-    } catch (error) {
-      reportError(error, 'No pudimos eliminar el mensaje. Intenta de nuevo.');
+    } catch {
+      // The store already reports the API error.
     }
   };
 
-  const handleTogglePin = async (message: MessageWithMeta) => {
+  const handleTogglePin = async (message: Message) => {
     if (!currentConversation) return;
 
     try {
-      const path = `/messages/${currentConversation.id}/messages/${message.id}/pin`;
-      const updatedMessage = message.pinned
-        ? await apiClient.delete<MessageWithMeta>(path, authOptions())
-        : await apiClient.post<MessageWithMeta>(path, undefined, authOptions());
+      const updatedMessage = await togglePin(currentConversation.id, message);
       setLocalMessages((prev) => prev.map((item) => (item.id === message.id ? updatedMessage : item)));
       setActiveMenuMessageId(null);
-      const data = await apiClient.get<MessageWithMeta[]>(`/messages/${currentConversation.id}/pinned`, authOptions());
-      setPinnedMessages(data.slice(0, 2));
-    } catch (error) {
-      reportError(error, 'No pudimos actualizar el mensaje fijado. Intenta de nuevo.');
+      const data = await fetchPinnedMessages(currentConversation.id);
+      setPinnedMessages(data.filter((item) => !(item.deleted_for_sender && item.sender_id === me?.id)).slice(0, 2));
+    } catch {
+      // The store already reports the API error.
     }
   };
 
@@ -212,7 +220,7 @@ export function MessagesPage() {
       : null
     : null;
 
-  const displayMessages = localMessages.filter((message) => !message.deleted_for_sender);
+  const displayMessages = localMessages.filter((message) => !(message.deleted_for_sender && message.sender_id === me?.id));
 
   return (
     <div className={styles.page}>
@@ -299,38 +307,63 @@ export function MessagesPage() {
                   {isLoadingMore ? 'Loading...' : 'Load older messages'}
                 </button>
               )}
-              {displayMessages.map((message) => {
+              {displayMessages.map((message, index) => {
                 const isOwn = message.sender_id === me?.id;
-                const canDeleteForAll = isOwn && Date.now() - new Date(message.created_at).getTime() < 15 * 60 * 1000;
+                const messageAgeMs = getMessageAgeMs(message, now);
+                const isDeletedForAll = message.deleted_for_all;
+                const canPin = !isDeletedForAll;
+                const canEdit = isOwn && !isDeletedForAll && messageAgeMs < EDIT_WINDOW_MS;
+                const canDeleteForMe = isOwn && !isDeletedForAll;
+                const canDeleteForAll = isOwn && !isDeletedForAll && messageAgeMs < UNSEND_FOR_ALL_WINDOW_MS;
+                const hasContextMenuActions = canPin || canEdit || canDeleteForMe || canDeleteForAll;
                 const isEditing = editingMessageId === message.id;
                 const isMenuOpen = activeMenuMessageId === message.id;
+                const shouldOpenMenuAbove = index >= Math.max(displayMessages.length - 3, 0);
+                const contextMenuClassName = [
+                  styles.contextMenu,
+                  isOwn ? styles.contextMenuOwn : '',
+                  shouldOpenMenuAbove ? styles.contextMenuAbove : '',
+                ].filter(Boolean).join(' ');
 
                 return (
                   <div key={message.id} className={`${styles.messageRow} ${isOwn ? styles.ownMessage : ''}`}>
                     <div className={styles.messageWrapper}>
-                      <div className={`${styles.messageBubble} ${isOwn ? styles.ownBubble : styles.otherBubble}`} style={{ background: message.deleted_for_all ? '#e5e7eb' : undefined }}>
+                      <div className={`${styles.messageBubble} ${isOwn ? styles.ownBubble : styles.otherBubble} ${isDeletedForAll ? styles.deletedBubble : ''}`}>
                         {isEditing ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <div className={styles.editForm}>
                             <textarea
+                              className={styles.editTextarea}
                               value={editingBody}
                               onChange={(event) => setEditingBody(event.target.value)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Escape') {
+                                  event.preventDefault();
+                                  handleCancelEdit();
+                                }
+                                if (event.key === 'Enter' && !event.shiftKey) {
+                                  event.preventDefault();
+                                  void handleEditSave(message);
+                                }
+                              }}
                               rows={2}
-                              style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0.4rem' }}
                             />
-                            <div style={{ display: 'flex', gap: '0.35rem' }}>
-                              <button type="button" onClick={() => void handleEditSave(message)}>Save</button>
-                              <button type="button" onClick={handleCancelEdit}>Cancel</button>
+                            <div className={styles.editActions}>
+                              <button type="button" className={styles.editButton} onClick={() => void handleEditSave(message)}>Save</button>
+                              <button type="button" className={styles.editButtonSecondary} onClick={handleCancelEdit}>Cancel</button>
                             </div>
                           </div>
                         ) : (
                           <>
-                            <div>{message.deleted_for_all ? 'Mensaje eliminado' : message.body}</div>
-                            <div className={styles.messageMeta}>{new Date(message.created_at).toLocaleTimeString()}</div>
+                            <div>{isDeletedForAll ? 'Mensaje anulado' : message.body}</div>
+                            <div className={styles.messageMeta}>
+                              {new Date(message.created_at).toLocaleTimeString()}
+                              {message.edited_at ? ' - edited' : ''}
+                            </div>
                           </>
                         )}
                       </div>
 
-                      {!isEditing && (
+                      {!isEditing && hasContextMenuActions && (
                         <button
                           type="button"
                           className={`${styles.menuButton} ${isOwn ? styles.menuButtonLeft : ''}`}
@@ -339,26 +372,32 @@ export function MessagesPage() {
                             setActiveMenuMessageId(isMenuOpen ? null : message.id);
                           }}
                         >
-                          ⋯
+                          ...
                         </button>
                       )}
 
-                      {isMenuOpen && !isEditing && (
-                        <div className={styles.contextMenu}>
-                          <button type="button" className={styles.contextMenuItem} onClick={() => void handleTogglePin(message)}>
-                            {message.pinned ? '📌 Unpin' : '📌 Pin'}
-                          </button>
-                          {isOwn && (
+                      {isMenuOpen && !isEditing && hasContextMenuActions && (
+                        <div className={contextMenuClassName}>
+                          {canPin && (
+                            <button type="button" className={styles.contextMenuItem} onClick={() => void handleTogglePin(message)}>
+                              {message.pinned ? 'Unpin' : 'Pin'}
+                            </button>
+                          )}
+                          {(canEdit || canDeleteForMe || canDeleteForAll) && (
                             <>
-                              <button type="button" className={styles.contextMenuItem} onClick={() => handleStartEdit(message)}>
-                                ✏️ Edit
-                              </button>
-                              <button type="button" className={styles.contextMenuItem} onClick={() => void handleDelete(message, 'sender')}>
-                                🗑️ Anular envío para mí
-                              </button>
+                              {canEdit && (
+                                <button type="button" className={styles.contextMenuItem} onClick={() => handleStartEdit(message)}>
+                                  Edit
+                                </button>
+                              )}
+                              {canDeleteForMe && (
+                                <button type="button" className={styles.contextMenuItem} onClick={() => void handleDelete(message, 'sender')}>
+                                  Anular envio para mi
+                                </button>
+                              )}
                               {canDeleteForAll && (
                                 <button type="button" className={`${styles.contextMenuItem} ${styles.contextMenuItemDanger}`} onClick={() => void handleDelete(message, 'all')}>
-                                  ❌ Anular envío
+                                  Anular envio para ambos
                                 </button>
                               )}
                             </>

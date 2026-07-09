@@ -31,6 +31,8 @@ const MESSAGE_OVERRIDES: Record<string, string> = {
   'Message not found': 'No encontramos ese mensaje.',
   'You can only edit your own messages': 'Solo puedes editar tus propios mensajes.',
   'Message can no longer be edited': 'Ya no puedes editar este mensaje.',
+  'Invalid message delete mode': 'Elige una opcion valida para anular el envio.',
+  'Only the sender can delete the message': 'Solo quien envio el mensaje puede anularlo.',
   'Only the sender can delete the message for everyone': 'Solo quien envió el mensaje puede anularlo para todos.',
   'Message can no longer be deleted for everyone': 'Ya no puedes anular este mensaje para todos.',
   'Maximum 2 pinned messages per conversation': 'Solo puedes fijar hasta 2 mensajes por conversación.',

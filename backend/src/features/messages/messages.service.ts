@@ -10,6 +10,22 @@ function assertMessageRouteIds(messageId: string, conversationId: string) {
   }
 }
 
+function parseMessageBody(body: unknown) {
+  if (typeof body !== 'string' || !body.trim()) {
+    throw new AppError('Message body cannot be empty', 400);
+  }
+
+  return body.trim();
+}
+
+function parseDeleteMode(mode: unknown) {
+  if (mode !== 'sender' && mode !== 'all') {
+    throw new AppError('Invalid message delete mode', 400);
+  }
+
+  return mode;
+}
+
 export const messagesService = {
   async healthCheck() {
     return messagesRepository.healthCheck();
@@ -29,24 +45,18 @@ export const messagesService = {
     return messages;
   },
 
-  async sendMessage(conversationId: string, senderId: string, body: string) {
-    if (!body.trim()) {
-      throw new AppError('Message body cannot be empty', 400);
-    }
-
-    return messagesRepository.sendMessage(conversationId, senderId, body.trim());
+  async sendMessage(conversationId: string, senderId: string, body: unknown) {
+    return messagesRepository.sendMessage(conversationId, senderId, parseMessageBody(body));
   },
 
-  async editMessage(messageId: string, userId: string, body: string) {
-    if (!body.trim()) {
-      throw new AppError('Message body cannot be empty', 400);
-    }
-
-    return messagesRepository.editMessage(messageId, userId, body.trim());
+  async editMessage(conversationId: string, messageId: string, userId: string, body: unknown) {
+    assertMessageRouteIds(messageId, conversationId);
+    return messagesRepository.editMessage(conversationId, messageId, userId, parseMessageBody(body));
   },
 
-  async deleteMessage(messageId: string, userId: string, mode: 'sender' | 'all') {
-    return messagesRepository.deleteMessage(messageId, userId, mode);
+  async deleteMessage(conversationId: string, messageId: string, userId: string, mode: unknown) {
+    assertMessageRouteIds(messageId, conversationId);
+    return messagesRepository.deleteMessage(conversationId, messageId, userId, parseDeleteMode(mode));
   },
 
   async pinMessage(messageId: string, conversationId: string) {

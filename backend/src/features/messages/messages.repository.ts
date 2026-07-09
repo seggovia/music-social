@@ -87,7 +87,7 @@ export const messagesRepository = {
     const { data, error } = await supabase
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: senderId, body })
-      .select()
+      .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
     if (error) {
@@ -110,11 +110,12 @@ export const messagesRepository = {
     }
   },
 
-  async editMessage(messageId: string, senderId: string, body: string) {
+  async editMessage(conversationId: string, messageId: string, senderId: string, body: string) {
     const { data: existingMessage, error: fetchError } = await supabase
       .from('messages')
       .select('*')
       .eq('id', messageId)
+      .eq('conversation_id', conversationId)
       .maybeSingle();
 
     if (fetchError) {
@@ -129,6 +130,10 @@ export const messagesRepository = {
       throw new AppError('You can only edit your own messages', 403);
     }
 
+    if (existingMessage.deleted_for_all || existingMessage.deleted_for_sender) {
+      throw new AppError('Message can no longer be edited', 400);
+    }
+
     const createdAt = new Date(existingMessage.created_at as string).getTime();
     const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
     if (createdAt < twentyFourHoursAgo) {
@@ -139,6 +144,7 @@ export const messagesRepository = {
       .from('messages')
       .update({ body, edited_at: new Date().toISOString() })
       .eq('id', messageId)
+      .eq('conversation_id', conversationId)
       .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
@@ -149,11 +155,12 @@ export const messagesRepository = {
     return data;
   },
 
-  async deleteMessage(messageId: string, userId: string, mode: 'sender' | 'all') {
+  async deleteMessage(conversationId: string, messageId: string, userId: string, mode: 'sender' | 'all') {
     const { data: existingMessage, error: fetchError } = await supabase
       .from('messages')
       .select('*')
       .eq('id', messageId)
+      .eq('conversation_id', conversationId)
       .maybeSingle();
 
     if (fetchError) {
@@ -164,11 +171,16 @@ export const messagesRepository = {
       throw new AppError('Message not found', 404);
     }
 
+    if (existingMessage.sender_id !== userId) {
+      throw new AppError('Only the sender can delete the message', 403);
+    }
+
     if (mode === 'sender') {
       const { data, error } = await supabase
         .from('messages')
         .update({ deleted_for_sender: true })
         .eq('id', messageId)
+        .eq('conversation_id', conversationId)
         .select(MESSAGE_WITH_SENDER_SELECT)
         .single();
 
@@ -179,10 +191,6 @@ export const messagesRepository = {
       return data;
     }
 
-    if (existingMessage.sender_id !== userId) {
-      throw new AppError('Only the sender can delete the message for everyone', 403);
-    }
-
     const createdAt = new Date(existingMessage.created_at as string).getTime();
     const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
     if (createdAt < fifteenMinutesAgo) {
@@ -191,8 +199,9 @@ export const messagesRepository = {
 
     const { data, error } = await supabase
       .from('messages')
-      .update({ deleted_for_all: true })
+      .update({ deleted_for_all: true, pinned: false, pinned_at: null })
       .eq('id', messageId)
+      .eq('conversation_id', conversationId)
       .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
@@ -209,6 +218,7 @@ export const messagesRepository = {
       .select('id, pinned')
       .eq('id', messageId)
       .eq('conversation_id', conversationId)
+      .eq('deleted_for_all', false)
       .maybeSingle();
 
     if (fetchError) {
@@ -238,7 +248,8 @@ export const messagesRepository = {
       .from('messages')
       .select('id', { count: 'exact', head: true })
       .eq('conversation_id', conversationId)
-      .eq('pinned', true);
+      .eq('pinned', true)
+      .eq('deleted_for_all', false);
 
     if (countError) {
       throw new AppError('Failed to count pinned messages', 500, countError);
@@ -289,6 +300,7 @@ export const messagesRepository = {
       .select(MESSAGE_WITH_SENDER_SELECT)
       .eq('conversation_id', conversationId)
       .eq('pinned', true)
+      .eq('deleted_for_all', false)
       .order('pinned_at', { ascending: true });
 
     if (error) {

@@ -38,18 +38,20 @@ export const messagesController = {
   }) as RequestHandler,
 
   editMessage: (async (req, res) => {
+    const conversationId = req.params.conversationId as string;
     const messageId = req.params.messageId as string;
     const userId = req.userId!;
-    const body = req.body.body as string;
-    const message = await messagesService.editMessage(messageId, userId, body);
+    const body = req.body.body as unknown;
+    const message = await messagesService.editMessage(conversationId, messageId, userId, body);
     res.json(message);
   }) as RequestHandler,
 
   deleteMessage: (async (req, res) => {
+    const conversationId = req.params.conversationId as string;
     const messageId = req.params.messageId as string;
     const userId = req.userId!;
-    const mode = req.body.mode as 'sender' | 'all';
-    const message = await messagesService.deleteMessage(messageId, userId, mode);
+    const mode = req.body?.mode ?? req.query.mode;
+    const message = await messagesService.deleteMessage(conversationId, messageId, userId, mode);
     res.json(message);
   }) as RequestHandler,
 

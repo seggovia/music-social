@@ -21,8 +21,15 @@ export interface Message {
   body: string;
   read_at: string | null;
   created_at: string;
+  edited_at: string | null;
+  deleted_for_sender: boolean;
+  deleted_for_all: boolean;
+  pinned: boolean;
+  pinned_at: string | null;
   sender: ConversationUser;
 }
+
+export type MessageDeleteMode = 'sender' | 'all';
 
 export interface MessagesState {
   conversations: Conversation[];
@@ -39,4 +46,8 @@ export interface MessagesState {
   fetchMessages: (conversationId: string) => Promise<void>;
   loadOlderMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, body: string) => Promise<void>;
+  editMessage: (conversationId: string, messageId: string, body: string) => Promise<Message>;
+  deleteMessage: (conversationId: string, messageId: string, mode: MessageDeleteMode) => Promise<Message>;
+  togglePin: (conversationId: string, message: Message) => Promise<Message>;
+  fetchPinnedMessages: (conversationId: string) => Promise<Message[]>;
 }

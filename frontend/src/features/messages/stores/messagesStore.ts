@@ -3,13 +3,17 @@ import { useAuthStore } from '@/features/auth/stores/authStore';
 import { apiClient } from '@/shared/api/client';
 import { reportError } from '@/shared/lib/errors';
 import type { PaginatedResponse } from '@/shared/types';
-import type { Conversation, Message, MessagesState } from '../types';
+import type { Conversation, Message, MessageDeleteMode, MessagesState } from '../types';
 
 const MESSAGES_LIMIT = 30;
 
 function authOptions(): RequestInit {
   const token = useAuthStore.getState().accessToken;
   return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+}
+
+function replaceMessage(messages: Message[], updatedMessage: Message) {
+  return messages.map((message) => (message.id === updatedMessage.id ? updatedMessage : message));
 }
 
 export const useMessagesStore = create<MessagesState>((set, get) => ({
@@ -117,6 +121,69 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     } catch (error) {
       const message = reportError(error, 'No pudimos enviar el mensaje. Intenta de nuevo.');
       set({ error: message, isLoading: false });
+      throw error;
+    }
+  },
+
+  async editMessage(conversationId: string, messageId: string, body: string) {
+    try {
+      const updatedMessage = await apiClient.put<Message>(
+        `/messages/${conversationId}/messages/${messageId}`,
+        { body },
+        authOptions(),
+      );
+      set((state) => ({ messages: replaceMessage(state.messages, updatedMessage) }));
+      return updatedMessage;
+    } catch (error) {
+      const message = reportError(error, 'No pudimos editar el mensaje. Intenta de nuevo.');
+      set({ error: message });
+      throw error;
+    }
+  },
+
+  async deleteMessage(conversationId: string, messageId: string, mode: MessageDeleteMode) {
+    try {
+      const updatedMessage = await apiClient.delete<Message>(
+        `/messages/${conversationId}/messages/${messageId}`,
+        { ...authOptions(), body: JSON.stringify({ mode }) },
+      );
+      set((state) => ({
+        messages: mode === 'sender'
+          ? state.messages.filter((message) => message.id !== messageId)
+          : replaceMessage(state.messages, updatedMessage),
+        messagesTotal: mode === 'sender' ? Math.max(0, state.messagesTotal - 1) : state.messagesTotal,
+      }));
+      return updatedMessage;
+    } catch (error) {
+      const message = reportError(error, 'No pudimos anular el envio del mensaje. Intenta de nuevo.');
+      set({ error: message });
+      throw error;
+    }
+  },
+
+  async togglePin(conversationId: string, message: Message) {
+    try {
+      const path = `/messages/${conversationId}/messages/${message.id}/pin`;
+      const updatedMessage = message.pinned
+        ? await apiClient.delete<Message>(path, authOptions())
+        : await apiClient.post<Message>(path, undefined, authOptions());
+      set((state) => ({ messages: replaceMessage(state.messages, updatedMessage) }));
+      return updatedMessage;
+    } catch (error) {
+      const message = reportError(error, 'No pudimos actualizar el mensaje fijado. Intenta de nuevo.');
+      set({ error: message });
+      throw error;
+    }
+  },
+
+  async fetchPinnedMessages(conversationId: string) {
+    try {
+      return await apiClient.get<Message[]>(`/messages/${conversationId}/pinned`, authOptions());
+    } catch (error) {
+      const message = reportError(error, 'No pudimos cargar los mensajes fijados. Intenta de nuevo.', async () => {
+        await get().fetchPinnedMessages(conversationId);
+      });
+      set({ error: message });
       throw error;
     }
   },
