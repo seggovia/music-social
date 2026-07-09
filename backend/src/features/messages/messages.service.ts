@@ -2,6 +2,14 @@ import { AppError } from '../../shared/errors/AppError.js';
 import type { Pagination } from '../../shared/pagination.js';
 import { messagesRepository } from './messages.repository.js';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function assertMessageRouteIds(messageId: string, conversationId: string) {
+  if (!UUID_PATTERN.test(messageId) || !UUID_PATTERN.test(conversationId)) {
+    throw new AppError('Message not found', 404);
+  }
+}
+
 export const messagesService = {
   async healthCheck() {
     return messagesRepository.healthCheck();
@@ -42,11 +50,13 @@ export const messagesService = {
   },
 
   async pinMessage(messageId: string, conversationId: string) {
+    assertMessageRouteIds(messageId, conversationId);
     return messagesRepository.pinMessage(messageId, conversationId);
   },
 
-  async unpinMessage(messageId: string) {
-    return messagesRepository.unpinMessage(messageId);
+  async unpinMessage(messageId: string, conversationId: string) {
+    assertMessageRouteIds(messageId, conversationId);
+    return messagesRepository.unpinMessage(messageId, conversationId);
   },
 
   async getPinnedMessages(conversationId: string) {

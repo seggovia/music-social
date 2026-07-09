@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import { supabase } from '../../config/supabase.js';
+import { supabaseAuth } from '../../config/supabase.js';
 import { AppError } from '../errors/AppError.js';
 
 export const authMiddleware: RequestHandler = async (req, _res, next) => {
@@ -11,7 +11,7 @@ export const authMiddleware: RequestHandler = async (req, _res, next) => {
       throw new AppError('Authentication token missing', 401);
     }
 
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await supabaseAuth.auth.getUser(token);
 
     if (error || !data.user) {
       throw new AppError('Invalid or expired token', 401, error);
@@ -39,7 +39,7 @@ export const optionalAuthMiddleware: RequestHandler = async (req, _res, next) =>
       return;
     }
 
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await supabaseAuth.auth.getUser(token);
     if (!error && data.user) {
       req.userId = data.user.id;
     }
