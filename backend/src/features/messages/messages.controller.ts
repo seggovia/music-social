@@ -62,7 +62,8 @@ export const messagesController = {
 
   unpinMessage: (async (req, res) => {
     const messageId = req.params.messageId as string;
-    const message = await messagesService.unpinMessage(messageId);
+    const conversationId = req.params.conversationId as string;
+    const message = await messagesService.unpinMessage(messageId, conversationId);
     res.json(message);
   }) as RequestHandler,
 

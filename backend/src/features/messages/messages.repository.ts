@@ -3,6 +3,8 @@ import { AppError } from '../../shared/errors/AppError.js';
 import type { Pagination } from '../../shared/pagination.js';
 import { createPaginatedResponse } from '../../shared/pagination.js';
 
+const MESSAGE_WITH_SENDER_SELECT = '*, sender:users!messages_sender_id_fkey(id, username, avatar_url)';
+
 export const messagesRepository = {
   async healthCheck() {
     void supabase;
@@ -69,7 +71,7 @@ export const messagesRepository = {
   async getMessages(conversationId: string, pagination: Pagination) {
     const { data, error, count } = await supabase
       .from('messages')
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)', { count: 'exact' })
+      .select(MESSAGE_WITH_SENDER_SELECT, { count: 'exact' })
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .range(pagination.offset, pagination.offset + pagination.limit - 1);
@@ -137,7 +139,7 @@ export const messagesRepository = {
       .from('messages')
       .update({ body, edited_at: new Date().toISOString() })
       .eq('id', messageId)
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+      .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
     if (error) {
@@ -167,7 +169,7 @@ export const messagesRepository = {
         .from('messages')
         .update({ deleted_for_sender: true })
         .eq('id', messageId)
-        .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+        .select(MESSAGE_WITH_SENDER_SELECT)
         .single();
 
       if (error) {
@@ -191,7 +193,7 @@ export const messagesRepository = {
       .from('messages')
       .update({ deleted_for_all: true })
       .eq('id', messageId)
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+      .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
     if (error) {
@@ -202,6 +204,36 @@ export const messagesRepository = {
   },
 
   async pinMessage(messageId: string, conversationId: string) {
+    const { data: existingMessage, error: fetchError } = await supabase
+      .from('messages')
+      .select('id, pinned')
+      .eq('id', messageId)
+      .eq('conversation_id', conversationId)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new AppError('Failed to fetch message', 500, fetchError);
+    }
+
+    if (!existingMessage) {
+      throw new AppError('Message not found', 404);
+    }
+
+    if (existingMessage.pinned) {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(MESSAGE_WITH_SENDER_SELECT)
+        .eq('id', messageId)
+        .eq('conversation_id', conversationId)
+        .single();
+
+      if (error) {
+        throw new AppError('Failed to fetch message', 500, error);
+      }
+
+      return data;
+    }
+
     const { count, error: countError } = await supabase
       .from('messages')
       .select('id', { count: 'exact', head: true })
@@ -220,7 +252,8 @@ export const messagesRepository = {
       .from('messages')
       .update({ pinned: true, pinned_at: new Date().toISOString() })
       .eq('id', messageId)
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+      .eq('conversation_id', conversationId)
+      .select(MESSAGE_WITH_SENDER_SELECT)
       .single();
 
     if (error) {
@@ -230,16 +263,21 @@ export const messagesRepository = {
     return data;
   },
 
-  async unpinMessage(messageId: string) {
+  async unpinMessage(messageId: string, conversationId: string) {
     const { data, error } = await supabase
       .from('messages')
       .update({ pinned: false, pinned_at: null })
       .eq('id', messageId)
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
-      .single();
+      .eq('conversation_id', conversationId)
+      .select(MESSAGE_WITH_SENDER_SELECT)
+      .maybeSingle();
 
     if (error) {
       throw new AppError('Failed to unpin message', 500, error);
+    }
+
+    if (!data) {
+      throw new AppError('Message not found', 404);
     }
 
     return data;
@@ -248,7 +286,7 @@ export const messagesRepository = {
   async getPinnedMessages(conversationId: string) {
     const { data, error } = await supabase
       .from('messages')
-      .select('*, sender:users!messages_sender_id_fkey(id, username, avatar_url)')
+      .select(MESSAGE_WITH_SENDER_SELECT)
       .eq('conversation_id', conversationId)
       .eq('pinned', true)
       .order('pinned_at', { ascending: true });

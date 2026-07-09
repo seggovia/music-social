@@ -1,4 +1,4 @@
-import { supabase } from '../../config/supabase.js';
+import { supabase, supabaseAuth } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
 import type { AuthResponse, LoginInput, RegisterInput, UserProfile } from './auth.types.js';
 
@@ -6,7 +6,7 @@ const PROFILE_SELECT = 'id, username, display_name, avatar_url, bio, created_at,
 
 export const authRepository = {
   async register(input: RegisterInput): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabaseAuth.auth.signUp({
       email: input.email,
       password: input.password,
       options: {
@@ -51,7 +51,7 @@ export const authRepository = {
   },
 
   async login(input: LoginInput): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseAuth.auth.signInWithPassword({
       email: input.email,
       password: input.password,
     });
