@@ -25,10 +25,6 @@
   text-transform: uppercase;
 }
 
-.intro {
-  display: none;
-}
-
 .grid {
   display: flex;
   flex-wrap: wrap;
@@ -75,8 +71,13 @@
   justify-content: center;
   width: 22px;
   height: 22px;
+  border: 1px solid color-mix(in srgb, var(--platform-color, var(--color-accent)) 36%, transparent);
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.06);
+  color: var(--platform-color, var(--color-accent));
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
 }
 
 .empty {
