@@ -225,7 +225,13 @@ export function MessagesPage() {
   return (
     <div className={styles.page}>
       <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>Messages</div>
+        <div className={styles.sidebarHeader}>
+          <p className={styles.sidebarEyebrow}>Direct messages</p>
+          <div className={styles.sidebarTitleRow}>
+            <h1 className={styles.sidebarTitle}>Messages</h1>
+            <span className={styles.sidebarCount}>{conversations.length}</span>
+          </div>
+        </div>
         <div className={styles.conversationsList}>
           {conversations.map((conversation) => {
             const participant = conversation.user_one && conversation.user_two
@@ -249,13 +255,18 @@ export function MessagesPage() {
               >
                 {participant ? (
                   <>
-                    <img
-                      src={participant.avatar_url ?? 'https://placehold.co/40x40?text=U'}
-                      alt={participant.username}
-                      className={styles.avatar}
-                    />
+                    <div className={styles.conversationAvatarWrap}>
+                      <img
+                        src={participant.avatar_url ?? 'https://placehold.co/40x40?text=U'}
+                        alt={participant.username}
+                        className={styles.avatar}
+                      />
+                    </div>
                     <div className={styles.conversationContent}>
-                      <div className={styles.username}>{participant.username}</div>
+                      <div className={styles.conversationTopLine}>
+                        <div className={styles.username}>{participant.username}</div>
+                        {isActive ? <span className={styles.activeDot} aria-label="Active conversation" /> : null}
+                      </div>
                       <div className={styles.lastMessage}>{lastMessage}</div>
                     </div>
                   </>
@@ -275,25 +286,36 @@ export function MessagesPage() {
         {currentConversation && otherUser ? (
           <>
             <div className={styles.panelHeader}>
-              <img
-                src={otherUser.avatar_url ?? 'https://placehold.co/40x40?text=U'}
-                alt={otherUser.username}
-                className={styles.avatar}
-              />
-              <div className={styles.panelHeaderName}>{otherUser.username}</div>
+              <div className={styles.panelAvatarWrap}>
+                <img
+                  src={otherUser.avatar_url ?? 'https://placehold.co/40x40?text=U'}
+                  alt={otherUser.username}
+                  className={styles.avatar}
+                />
+              </div>
+              <div>
+                <p className={styles.panelEyebrow}>Conversation with</p>
+                <div className={styles.panelHeaderName}>{otherUser.username}</div>
+              </div>
             </div>
 
             {pinnedMessages.length > 0 && (
-              <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>Pinned</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <section className={styles.pinnedBar} aria-label="Pinned messages">
+                <div className={styles.pinnedHeader}>
+                  <span className={styles.pinnedIcon} aria-hidden="true">Pin</span>
+                  <div>
+                    <p className={styles.pinnedEyebrow}>Pinned</p>
+                    <h2 className={styles.pinnedTitle}>Saved in this chat</h2>
+                  </div>
+                </div>
+                <div className={styles.pinnedList}>
                   {pinnedMessages.map((message) => (
-                    <div key={message.id} style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                    <article key={message.id} className={styles.pinnedItem}>
                       {message.body}
-                    </div>
+                    </article>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
             <div className={styles.messagesArea}>
@@ -354,7 +376,7 @@ export function MessagesPage() {
                           </div>
                         ) : (
                           <>
-                            <div>{isDeletedForAll ? 'Mensaje anulado' : message.body}</div>
+                            <div className={styles.messageText}>{isDeletedForAll ? 'Mensaje anulado' : message.body}</div>
                             <div className={styles.messageMeta}>
                               {new Date(message.created_at).toLocaleTimeString()}
                               {message.edited_at ? ' - edited' : ''}
