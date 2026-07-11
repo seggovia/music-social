@@ -72,8 +72,11 @@ export function SocialLinks({ links }: Props) {
   const active = PLATFORMS.filter((p) => links[p.key]);
 
   return (
-    <section className={styles.section}>
-      <h2>Connections</h2>
+    <section className={styles.section} aria-label="Connections">
+      <div className={styles.sectionHeader}>
+        <p className={styles.eyebrow}>Connections</p>
+        <h2>Links</h2>
+      </div>
       <p className={styles.intro}>Show your socials so people can find you elsewhere 🎶</p>
       {active.length === 0 ? (
         <p className={styles.empty}>No connections added yet.</p>

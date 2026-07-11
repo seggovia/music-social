@@ -5,11 +5,11 @@ import { useChartsStore } from '../stores/chartsStore';
 import type { ChartTab } from '../types';
 import styles from './ChartsPage.module.css';
 
-const TABS: { key: ChartTab; label: string }[] = [
-  { key: 'most-reviewed', label: 'Most Reviewed' },
-  { key: 'top-all-time', label: 'Top All Time' },
-  { key: 'top-by-year', label: 'Top by Year' },
-  { key: 'top-by-genre', label: 'Top by Genre' },
+const TABS: { key: ChartTab; label: string; description: string }[] = [
+  { key: 'most-reviewed', label: 'Most Reviewed', description: 'Albums driving the most discussion.' },
+  { key: 'top-all-time', label: 'Top All Time', description: 'Highest rated records across the community.' },
+  { key: 'top-by-year', label: 'Top by Year', description: 'Standout releases from a specific year.' },
+  { key: 'top-by-genre', label: 'Top by Genre', description: 'Top rated albums inside a genre.' },
 ];
 
 export function ChartsPage() {
@@ -17,6 +17,7 @@ export function ChartsPage() {
     activeTab, albums, genres, selectedYear, selectedGenreSlug,
     isLoading, isLoadingMore, hasMore, error, fetchTab, loadMore, fetchGenres, setYear, setGenre,
   } = useChartsStore();
+  const activeTabConfig = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
 
   useEffect(() => {
     void fetchTab('most-reviewed');
@@ -25,29 +26,33 @@ export function ChartsPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Charts</h1>
+      <header className={styles.headerPanel}>
+        <p className={styles.eyebrow}>Community rankings</p>
+        <h1 className={styles.title}>Charts</h1>
+        <p className={styles.subtitle}>{activeTabConfig.description}</p>
+      </header>
 
       <div className={styles.tabs}>
-        {TABS.map((t) => (
+        {TABS.map((tab) => (
           <button
-            key={t.key}
+            key={tab.key}
             type="button"
-            className={t.key === activeTab ? `${styles.tab} ${styles.tabActive}` : styles.tab}
-            onClick={() => fetchTab(t.key)}
+            className={tab.key === activeTab ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+            onClick={() => fetchTab(tab.key)}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
       {activeTab === 'top-by-year' && (
         <div className={styles.subFilters}>
-          <label htmlFor="yearInput">Year:</label>
+          <label htmlFor="yearInput" className={styles.filterLabel}>Year</label>
           <input
             id="yearInput"
             type="number"
             value={selectedYear}
-            onChange={(e) => setYear(Number(e.target.value))}
+            onChange={(event) => setYear(Number(event.target.value))}
             className={styles.yearInput}
           />
         </div>
@@ -55,15 +60,15 @@ export function ChartsPage() {
 
       {activeTab === 'top-by-genre' && (
         <div className={styles.subFilters}>
-          <label htmlFor="genreSelect">Genre:</label>
+          <label htmlFor="genreSelect" className={styles.filterLabel}>Genre</label>
           <select
             id="genreSelect"
             value={selectedGenreSlug ?? ''}
-            onChange={(e) => setGenre(e.target.value)}
+            onChange={(event) => setGenre(event.target.value)}
             className={styles.select}
           >
-            {genres.map((g) => (
-              <option key={g.slug} value={g.slug}>{g.name}</option>
+            {genres.map((genre) => (
+              <option key={genre.slug} value={genre.slug}>{genre.name}</option>
             ))}
           </select>
         </div>
@@ -71,41 +76,60 @@ export function ChartsPage() {
 
       {isLoading && (
         <div className={styles.list}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <SkeletonAlbumCard key={i} />
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonAlbumCard key={index} />
           ))}
         </div>
       )}
 
       {!isLoading && !error && albums.length === 0 && (
-        <p className={styles.empty}>No albums found for this chart yet.</p>
+        <div className={styles.empty}>No albums found for this chart yet.</div>
       )}
 
       {!isLoading && !error && albums.length > 0 && (
-        <div className={styles.list}>
-          {albums.map((album, index) => (
-            <Link key={album.id} to={`/albums/${album.id}`} className={styles.row}>
-              <span className={styles.rank}>#{index + 1}</span>
-              <img
-                src={album.coverUrl ?? 'https://placehold.co/56x56?text=No+Cover'}
-                alt={album.title}
-                className={styles.cover}
-              />
-              <div className={styles.info}>
-                <p className={styles.albumTitle}>{album.title}</p>
-                <p className={styles.artistName}>{album.artist} {album.year ? `· ${album.year}` : ''}</p>
-              </div>
-              <div className={styles.stats}>
-                <p className={styles.rating}>⭐ {album.avgRating}</p>
-                <p className={styles.reviewCount}>{album.reviewCount} review{album.reviewCount !== 1 ? 's' : ''}</p>
-              </div>
-            </Link>
-          ))}
-          {isLoadingMore && Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonAlbumCard key={`more-${i}`} />
-          ))}
-        </div>
+        <>
+          <div className={styles.resultsHeader}>
+            <div>
+              <p className={styles.resultsEyebrow}>Now showing</p>
+              <h2 className={styles.resultsTitle}>{activeTabConfig.label}</h2>
+            </div>
+            <p className={styles.resultsCount}>{albums.length}{hasMore ? '+' : ''} ranked albums</p>
+          </div>
+
+          <div className={styles.list}>
+            {albums.map((album, index) => {
+              const rowClassName = [
+                styles.row,
+                index < 3 ? styles.topRow : '',
+                index === 0 ? styles.firstRow : '',
+              ].filter(Boolean).join(' ');
+
+              return (
+                <Link key={album.id} to={`/albums/${album.id}`} className={rowClassName}>
+                  <span className={styles.rank}>{index + 1}</span>
+                  <img
+                    src={album.coverUrl ?? 'https://placehold.co/56x56?text=No+Cover'}
+                    alt={album.title}
+                    className={styles.cover}
+                  />
+                  <div className={styles.info}>
+                    <p className={styles.albumTitle}>{album.title}</p>
+                    <p className={styles.artistName}>{album.artist}{album.year ? ` - ${album.year}` : ''}</p>
+                  </div>
+                  <div className={styles.stats}>
+                    <p className={styles.rating}>{album.avgRating}</p>
+                    <p className={styles.reviewCount}>{album.reviewCount} review{album.reviewCount !== 1 ? 's' : ''}</p>
+                  </div>
+                </Link>
+              );
+            })}
+            {isLoadingMore && Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonAlbumCard key={`more-${index}`} />
+            ))}
+          </div>
+        </>
       )}
+
       {!isLoading && !error && hasMore && (
         <div className={styles.loadMoreRow}>
           <button type="button" className={styles.loadMoreButton} onClick={() => void loadMore()} disabled={isLoadingMore}>

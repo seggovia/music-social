@@ -16,7 +16,7 @@ export function ReviewList() {
         <article key={review.id} className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.username}>{review.users?.username ?? 'Unknown user'}</span>
-            <span className={styles.rating}>⭐ {review.rating} / 5</span>
+            <span className={styles.rating}>{review.rating} / 5</span>
           </div>
           <p className={styles.content}>{review.content}</p>
           <small className={styles.date}>

@@ -20,7 +20,7 @@ export function ReviewForm({ albumId, onSuccess }: Props) {
       setRating(5);
       onSuccess?.();
     } catch {
-      // El toast global muestra el error.
+      // The global toast shows the error.
     }
   };
 
@@ -29,7 +29,7 @@ export function ReviewForm({ albumId, onSuccess }: Props) {
       <h3 className={styles.heading}>Write a review</h3>
       <div className={styles.field}>
         <label htmlFor="rating" className={styles.label}>
-          Rating (0.5 – 5):
+          Rating (0.5 - 5):
           <input
             id="rating"
             type="number"

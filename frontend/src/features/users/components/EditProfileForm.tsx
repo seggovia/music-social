@@ -3,13 +3,13 @@ import { useUsersStore } from '../stores/usersStore';
 import type { SocialLinks, UpdateProfileInput, UserProfile } from '../types';
 import styles from './EditProfileForm.module.css';
 
-const PLATFORMS: { key: keyof SocialLinks; label: string; emoji: string; placeholder: string }[] = [
-  { key: 'spotify_url', label: 'Spotify', emoji: '🎧', placeholder: 'https://open.spotify.com/user/...' },
-  { key: 'lastfm_url', label: 'Last.fm', emoji: '📻', placeholder: 'https://www.last.fm/user/...' },
-  { key: 'instagram_url', label: 'Instagram', emoji: '📷', placeholder: 'https://instagram.com/...' },
-  { key: 'twitter_url', label: 'Twitter / X', emoji: '🐦', placeholder: 'https://x.com/...' },
-  { key: 'youtube_url', label: 'YouTube', emoji: '▶️', placeholder: 'https://youtube.com/@...' },
-  { key: 'bandcamp_url', label: 'Bandcamp', emoji: '🎵', placeholder: 'https://yourname.bandcamp.com' },
+const PLATFORMS: { key: keyof SocialLinks; label: string; mark: string; placeholder: string }[] = [
+  { key: 'spotify_url', label: 'Spotify', mark: 'SP', placeholder: 'https://open.spotify.com/user/...' },
+  { key: 'lastfm_url', label: 'Last.fm', mark: 'FM', placeholder: 'https://www.last.fm/user/...' },
+  { key: 'instagram_url', label: 'Instagram', mark: 'IG', placeholder: 'https://instagram.com/...' },
+  { key: 'twitter_url', label: 'Twitter / X', mark: 'X', placeholder: 'https://x.com/...' },
+  { key: 'youtube_url', label: 'YouTube', mark: 'YT', placeholder: 'https://youtube.com/@...' },
+  { key: 'bandcamp_url', label: 'Bandcamp', mark: 'BC', placeholder: 'https://yourname.bandcamp.com' },
 ];
 
 interface Props {
@@ -55,7 +55,7 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
       await updateProfile(profile.username, payload);
       onSaved();
     } catch {
-      // El toast global muestra el error.
+      // The global toast displays the error.
     }
   }
 
@@ -98,18 +98,21 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
       </div>
 
       <h3 className={styles.sectionTitle}>Connections</h3>
-      {PLATFORMS.map((p) => (
-        <div key={p.key} className={styles.platformRow}>
-          <span className={styles.platformEmoji}>{p.emoji}</span>
-          <input
-            type="text"
-            value={links[p.key] ?? ''}
-            onChange={(e) => updateLink(p.key, e.target.value)}
-            className={styles.input}
-            placeholder={p.placeholder}
-          />
-        </div>
-      ))}
+      <div className={styles.platformList}>
+        {PLATFORMS.map((p) => (
+          <div key={p.key} className={styles.platformRow}>
+            <span className={styles.platformMark} aria-hidden="true">{p.mark}</span>
+            <input
+              type="text"
+              value={links[p.key] ?? ''}
+              onChange={(e) => updateLink(p.key, e.target.value)}
+              className={styles.input}
+              placeholder={p.placeholder}
+              aria-label={p.label}
+            />
+          </div>
+        ))}
+      </div>
 
       <div className={styles.actions}>
         <button type="submit" disabled={isLoading} className={styles.saveButton}>

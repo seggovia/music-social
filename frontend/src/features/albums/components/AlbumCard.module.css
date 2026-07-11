@@ -10,16 +10,27 @@
   transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.card:hover {
+.card:hover,
+.card:focus-visible {
   transform: translateY(-2px);
   border-color: var(--color-border-hover);
   box-shadow: var(--shadow-md);
 }
 
 .coverWrap {
+  position: relative;
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--color-surface-elevated);
+}
+
+.coverWrap::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.28));
+  content: '';
+  pointer-events: none;
 }
 
 .cover {
@@ -35,14 +46,17 @@
 }
 
 .info {
+  display: grid;
+  gap: var(--space-1);
   padding: var(--space-4);
 }
 
 .title {
   font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  margin: 0;
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
@@ -52,14 +66,22 @@
 .artist {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-  margin: 0 0 var(--space-1);
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .year {
+  justify-self: start;
+  margin-top: var(--space-2);
+  padding: 0.15rem var(--space-2);
+  background: color-mix(in srgb, var(--color-surface-elevated) 82%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   font-size: var(--text-xs);
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
+  font-weight: 600;
+  line-height: var(--leading-caption);
 }

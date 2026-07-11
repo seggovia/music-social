@@ -28,10 +28,10 @@ export function AlbumPage() {
           <Skeleton width="280px" height="280px" borderRadius="12px" />
           <div className={styles.details}>
             <Skeleton width="300px" height="20px" />
-            <div style={{ marginTop: '1rem' }}>
+            <div className={styles.loadingMeta}>
               <Skeleton width="200px" height="20px" />
-              <Skeleton width="150px" height="20px" style={{ marginTop: '0.5rem' }} />
-              <Skeleton width="180px" height="20px" style={{ marginTop: '0.5rem' }} />
+              <Skeleton width="150px" height="20px" />
+              <Skeleton width="180px" height="20px" />
             </div>
           </div>
         </div>
@@ -43,54 +43,81 @@ export function AlbumPage() {
   return (
     <article className={styles.page}>
       <div className={styles.hero}>
-        <img
-          src={currentAlbum.coverUrl ?? 'https://placehold.co/400x400?text=No+Cover'}
-          alt={currentAlbum.title}
-          className={styles.cover}
-          loading="lazy"
-        />
+        <div className={styles.coverPanel}>
+          <img
+            src={currentAlbum.coverUrl ?? 'https://placehold.co/400x400?text=No+Cover'}
+            alt={currentAlbum.title}
+            className={styles.cover}
+            loading="lazy"
+          />
+        </div>
         <div className={styles.details}>
+          <p className={styles.eyebrow}>Album</p>
           <h1 className={styles.albumTitle}>{currentAlbum.title}</h1>
-          <div className={styles.meta}>
-            <p>
-              <strong>Artist:</strong>{' '}
-              {currentAlbum.artistMbid ? (
-                <Link to={`/artists/${currentAlbum.artistMbid}`} className={styles.artistLink}>
-                  {currentAlbum.artist}
-                </Link>
-              ) : (
-                currentAlbum.artist
-              )}
-            </p>
-            <p><strong>Year:</strong> {currentAlbum.year ?? 'Unknown'}</p>
-            <p><strong>Tracks:</strong> {currentAlbum.trackCount ?? 'Unknown'}</p>
-            <p><strong>Genres:</strong> {currentAlbum.genres?.join(', ') || 'Not available'}</p>
+          <div className={styles.artistLine}>
+            <span>by</span>{' '}
+            {currentAlbum.artistMbid ? (
+              <Link to={`/artists/${currentAlbum.artistMbid}`} className={styles.artistLink}>
+                {currentAlbum.artist}
+              </Link>
+            ) : (
+              <span className={styles.artistName}>{currentAlbum.artist}</span>
+            )}
+          </div>
+
+          <div className={styles.metaGrid}>
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>Year</span>
+              <span className={styles.metaValue}>{currentAlbum.year ?? 'Unknown'}</span>
+            </div>
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>Tracks</span>
+              <span className={styles.metaValue}>{currentAlbum.trackCount ?? 'Unknown'}</span>
+            </div>
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>Release</span>
+              <span className={styles.metaValue}>{currentAlbum.releaseDate ?? 'Unknown'}</span>
+            </div>
+          </div>
+
+          <div className={styles.genreList} aria-label="Genres">
+            {(currentAlbum.genres ?? []).length > 0 ? (
+              currentAlbum.genres!.map((genre) => (
+                <span key={genre} className={styles.genrePill}>{genre}</span>
+              ))
+            ) : (
+              <span className={styles.genrePillMuted}>Genres not available</span>
+            )}
           </div>
         </div>
       </div>
 
       {(currentAlbum.tracks ?? []).length > 0 && (
         <div className={styles.tracklist}>
-          <h2>Tracklist</h2>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>Sequence</p>
+            <h2>Tracklist</h2>
+          </div>
           <ol>
             {currentAlbum.tracks!.map((track, index) => (
               <li key={`${currentAlbum.mbid}-${index}`}>
-                {track.title}
+                <span className={styles.trackNumber}>{String(track.number ?? index + 1).padStart(2, '0')}</span>
+                <span className={styles.trackTitle}>{track.title}</span>
               </li>
             ))}
           </ol>
         </div>
       )}
 
-      <hr className={styles.divider} />
+      <section className={styles.reviewsSection}>
+        <ReviewList />
 
-      <ReviewList />
-
-      {user ? (
-        <ReviewForm albumId={currentAlbum.id} onSuccess={() => fetchByAlbum(currentAlbum.id)} />
-      ) : (
-        <p className={styles.loginPrompt}><Link to="/login">Log in</Link> to write a review.</p>
-      )}
+        {user ? (
+          <ReviewForm albumId={currentAlbum.id} onSuccess={() => fetchByAlbum(currentAlbum.id)} />
+        ) : (
+          <p className={styles.loginPrompt}><Link to="/login">Log in</Link> to write a review.</p>
+        )}
+      </section>
     </article>
   );
 }
