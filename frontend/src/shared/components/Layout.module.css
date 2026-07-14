@@ -196,6 +196,7 @@
   color: var(--color-text-subtle);
   font-size: var(--text-sm);
   line-height: 1;
+  transition: transform var(--transition-fast), color var(--transition-fast);
 }
 
 .dropdown {
@@ -247,6 +248,27 @@
   width: 100%;
 }
 
+@keyframes routeFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.routeFrame {
+  min-height: 100%;
+  animation: routeFadeSlide var(--duration-base) var(--ease-out) both;
+}
+
+.userMenuTrigger[aria-expanded='true'] .userChevron {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 900px) {
   .nav {
     grid-template-columns: auto auto;
@@ -275,5 +297,11 @@
 
   .userMenuTrigger {
     padding-right: var(--space-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .routeFrame {
+    animation: none;
   }
 }
