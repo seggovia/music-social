@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { ROUTES } from '@/shared/lib/constants';
 import { ErrorToast } from './ErrorToast';
@@ -9,6 +9,7 @@ export function Layout() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +70,7 @@ export function Layout() {
                     <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
                   )}
                   <span className={styles.userName}>{user.username}</span>
-                  <span className={styles.userChevron}>⌄</span>
+                  <span className={styles.userChevron} aria-hidden="true">v</span>
                 </button>
                 {menuOpen && (
                   <div className={styles.dropdown}>
@@ -96,7 +97,9 @@ export function Layout() {
         </nav>
       </header>
       <main className={styles.main}>
-        <Outlet />
+        <div key={`${location.pathname}${location.search}`} className={styles.routeFrame}>
+          <Outlet />
+        </div>
       </main>
       <ErrorToast />
     </div>

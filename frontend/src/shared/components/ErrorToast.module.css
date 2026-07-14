@@ -1,32 +1,62 @@
+@keyframes toastFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .viewport {
   position: fixed;
   right: var(--space-6);
   bottom: var(--space-6);
   z-index: 100;
-  width: min(420px, calc(100vw - (var(--space-4) * 2)));
+  width: min(440px, calc(100vw - (var(--space-4) * 2)));
   pointer-events: none;
 }
 
 .toast {
+  position: relative;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   gap: var(--space-3);
   align-items: start;
   padding: var(--space-4);
-  background: color-mix(in srgb, var(--color-surface) 92%, var(--color-error));
-  border: 1px solid color-mix(in srgb, var(--color-error) 62%, var(--color-border));
-  border-radius: var(--radius-md);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.36), 0 0 0 1px var(--color-accent-glow);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface-overlay) 82%, var(--color-error)),
+    var(--color-surface-raised)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-error) 48%, var(--color-border));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   pointer-events: auto;
+  animation: toastFadeSlide 220ms var(--ease-out) both;
+}
+
+.toast::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--color-error);
+  content: '';
 }
 
 .icon {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-error) 18%, var(--color-surface-2));
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 38%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--color-error-soft);
   color: var(--color-error);
   font-family: var(--font-display);
   font-size: var(--text-lg);
@@ -43,8 +73,8 @@
   color: var(--color-text);
   font-family: var(--font-display);
   font-size: var(--text-sm);
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 800;
+  line-height: var(--leading-tight);
 }
 
 .message {
@@ -63,37 +93,54 @@
 .retryButton,
 .closeButton {
   border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  background: color-mix(in srgb, var(--color-surface-elevated) 86%, transparent);
   color: var(--color-text);
-  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .retryButton {
-  min-height: 32px;
+  min-height: 34px;
   padding: 0 var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .retryButton:hover {
+  background: var(--color-accent-soft);
   border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface-2));
+  color: var(--color-accent-hover);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .closeButton {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: var(--text-xl);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 800;
   line-height: 1;
 }
 
 .closeButton:hover {
-  border-color: var(--color-error);
+  background: var(--color-error-soft);
+  border-color: color-mix(in srgb, var(--color-error) 48%, transparent);
   color: var(--color-error);
+  transform: translateY(-1px);
+}
+
+.retryButton:active,
+.closeButton:active {
+  transform: translateY(0) scale(0.99);
 }
 
 @media (max-width: 640px) {
@@ -103,11 +150,22 @@
   }
 
   .toast {
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .icon {
+    width: 32px;
+    height: 32px;
   }
 
   .actions {
     grid-column: 2;
     justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
   }
 }
