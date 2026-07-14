@@ -29,6 +29,10 @@ export function getErrorMessage(error: unknown, fallback = GENERIC_ERROR_MESSAGE
 
 export function reportError(error: unknown, fallback?: string, onRetry?: () => void | Promise<void>) {
   const message = getErrorMessage(error, fallback);
+  if (error instanceof ApiError && error.isSessionExpired) {
+    return message;
+  }
+
   useErrorToastStore.getState().showError({ message, onRetry });
   return message;
 }
