@@ -38,14 +38,14 @@
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.5rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 2.125rem;
 
   --text-caption: var(--text-xs);
   --text-body: var(--text-base);
-  --text-h3: var(--text-2xl);
-  --text-h2: clamp(1.75rem, 3vw, 2.5rem);
-  --text-h1: clamp(2.35rem, 6vw, 4.25rem);
+  --text-h3: var(--text-xl);
+  --text-h2: clamp(1.45rem, 2.2vw, 2rem);
+  --text-h1: clamp(2rem, 4vw, 3.15rem);
 
   --leading-caption: 1.35;
   --leading-body: 1.65;
@@ -79,9 +79,9 @@
   --radius-pill: 999px;
 
   /* Elevation */
-  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(0, 0, 0, 0.18);
-  --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 42px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.08), 0 28px 70px rgba(0, 0, 0, 0.42);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.025), 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.035), 0 10px 26px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.045), 0 18px 44px rgba(0, 0, 0, 0.26);
   --shadow-focus: 0 0 0 3px var(--color-accent-glow);
 
   /* Motion */
