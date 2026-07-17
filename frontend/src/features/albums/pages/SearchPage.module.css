@@ -6,9 +6,9 @@
 
 .searchPanel {
   display: grid;
-  gap: var(--space-6);
-  margin-bottom: var(--space-8);
-  padding: var(--space-8);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-6);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--color-surface-raised) 92%, transparent), var(--color-surface)),
     var(--color-surface);
@@ -18,7 +18,7 @@
 }
 
 .headerCopy {
-  max-width: 720px;
+  max-width: 640px;
 }
 
 .eyebrow {
@@ -37,71 +37,8 @@
 
 .subtitle {
   color: var(--color-text-muted);
-  font-size: var(--text-lg);
-  max-width: 680px;
-}
-
-.searchForm {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  max-width: 760px;
-}
-
-.input {
-  flex: 1;
-  min-height: 48px;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.input::placeholder {
-  color: var(--color-text-subtle);
-}
-
-.input:hover {
-  border-color: var(--color-border-hover);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-focus);
-}
-
-.searchButton {
-  min-height: 48px;
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  color: var(--color-text-inverse);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.24);
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
-}
-
-.searchButton:hover:not(:disabled) {
-  box-shadow: 0 14px 34px rgba(108, 92, 231, 0.34);
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-.searchButton:active:not(:disabled) {
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.22);
-  transform: translateY(0) scale(0.99);
-}
-
-.searchButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  filter: saturate(0.7);
+  max-width: 600px;
 }
 
 .error {
@@ -197,15 +134,6 @@
 
   .searchPanel {
     padding: var(--space-6);
-  }
-
-  .searchForm {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .searchButton {
-    width: 100%;
   }
 
   .grid {
