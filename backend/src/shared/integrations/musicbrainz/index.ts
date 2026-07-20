@@ -27,6 +27,17 @@ export async function searchAlbums(query: string, options: { limit?: number; off
   return fetchJson<{ count?: number; releases?: Array<Record<string, unknown>> }>(`/release?${params.toString()}`);
 }
 
+export async function searchArtists(query: string, options: { limit?: number; offset?: number } = {}) {
+  const params = new URLSearchParams({
+    query: `artist:${query.trim()}`,
+    fmt: 'json',
+    limit: String(options.limit ?? 25),
+    offset: String(options.offset ?? 0),
+  });
+
+  return fetchJson<{ count?: number; artists?: Array<Record<string, unknown>> }>(`/artist?${params.toString()}`);
+}
+
 export async function getAlbum(mbid: string) {
   return fetchJson<Record<string, unknown>>(`/release/${mbid}?fmt=json&inc=tags+genres+artist-credits`);
 }

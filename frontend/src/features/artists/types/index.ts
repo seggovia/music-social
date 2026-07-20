@@ -5,6 +5,17 @@ export interface ArtistAlbum {
   year: number | null;
 }
 
+export interface ArtistSummary {
+  id: string;
+  mbid: string;
+  name: string;
+  bio: string | null;
+  country: string | null;
+  imageUrl: string | null;
+  albumCount: number;
+  reviewCount: number;
+}
+
 export interface Artist {
   id: string;
   mbid: string;

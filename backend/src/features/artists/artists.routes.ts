@@ -4,5 +4,7 @@ import { artistsController } from './artists.controller.js';
 
 export const artistsRouter = Router();
 
+artistsRouter.get('/search', asyncHandler(artistsController.search));
+artistsRouter.get('/popular', asyncHandler(artistsController.popular));
 artistsRouter.get('/', asyncHandler(artistsController.healthCheck));
 artistsRouter.get('/:mbid', asyncHandler(artistsController.getByMbid));

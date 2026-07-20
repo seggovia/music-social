@@ -3,6 +3,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { AlbumPage, SearchPage } from '@/features/albums';
 import { ArtistPage } from '@/features/artists/pages/ArtistPage';
+import { ArtistsPage } from '@/features/artists/pages/ArtistsPage';
 import { ChartsPage } from '@/features/charts';
 import { UserProfilePage } from '@/features/users/pages/UserProfilePage';
 import { UsersListPage } from '@/features/users/pages/UsersListPage';
@@ -24,7 +25,7 @@ export function App() {
           <Route path={ROUTES.ALBUMS} element={<SearchPage />} />
           <Route path={`${ROUTES.ALBUMS}/:id`} element={<AlbumPage />} />
           <Route path={`${ROUTES.ARTISTS}/:mbid`} element={<ArtistPage />} />
-          <Route path={ROUTES.ARTISTS} element={<PlaceholderPage title="Artists" />} />
+          <Route path={ROUTES.ARTISTS} element={<ArtistsPage />} />
           <Route path={ROUTES.REVIEWS} element={<PlaceholderPage title="Reviews" />} />
           <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
           <Route path={ROUTES.USERS} element={<UsersListPage />} />
