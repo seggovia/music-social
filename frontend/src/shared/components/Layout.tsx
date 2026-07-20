@@ -77,10 +77,10 @@ export function Layout() {
 
   function handleAlbumSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!trimmedAlbumSearchQuery) return;
+    if (!trimmedAlbumSearchQuery || isAutocompleteLoading || autocompleteResults.length === 0) return;
 
     setSearchOpen(false);
-    navigate(`${ROUTES.ALBUMS}?q=${encodeURIComponent(trimmedAlbumSearchQuery)}`);
+    navigate(`${ROUTES.ALBUMS}/${autocompleteResults[0].mbid}`);
   }
 
   function handleAlbumSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -174,14 +174,6 @@ export function Layout() {
                 {!isAutocompleteLoading && autocompleteResults.length === 0 ? (
                   <p className={styles.searchEmpty}>No albums found.</p>
                 ) : null}
-
-                <Link
-                  to={`${ROUTES.ALBUMS}?q=${encodeURIComponent(trimmedAlbumSearchQuery)}`}
-                  className={styles.searchViewAll}
-                  onClick={() => setSearchOpen(false)}
-                >
-                  View all results
-                </Link>
               </div>
             ) : null}
           </div>
