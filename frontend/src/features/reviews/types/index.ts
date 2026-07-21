@@ -27,3 +27,27 @@ export interface UpdateReviewInput {
   rating?: number;
   content?: string;
 }
+
+export type ReviewFeedScope = 'all' | 'following';
+
+export interface FeedReview {
+  id: string;
+  userId: string;
+  albumId: string;
+  rating: number;
+  content: string;
+  createdAt: string;
+  author: {
+    username: string;
+    avatarUrl: string | null;
+  };
+  album: {
+    id: string;
+    title: string;
+    coverUrl: string | null;
+    artist: {
+      id: string;
+      name: string;
+    };
+  };
+}
