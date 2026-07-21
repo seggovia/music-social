@@ -19,6 +19,13 @@ export const reviewsController = {
     res.status(201).json(review);
   }) as RequestHandler,
 
+  getFeed: (async (req, res) => {
+    const scope = typeof req.query.scope === 'string' ? req.query.scope : 'all';
+    const pagination = parsePagination(req.query, { defaultLimit: 12, maxLimit: 50 });
+    const reviews = await reviewsService.getFeed(req.userId, scope, pagination);
+    res.json(reviews);
+  }) as RequestHandler,
+
   getByAlbum: (async (req, res) => {
     const albumId = req.params.albumId as string;
     const pagination = parsePagination(req.query, { defaultLimit: 10, maxLimit: 50 });

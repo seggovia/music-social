@@ -1,7 +1,9 @@
 import { AppError } from '../../shared/errors/AppError.js';
 import type { Pagination } from '../../shared/pagination.js';
 import { albumsRepository } from '../albums/albums.repository.js';
+import { followsRepository } from '../follows/follows.repository.js';
 import { reviewsRepository } from './reviews.repository.js';
+import type { ReviewsFeedScope } from './reviews.types.js';
 
 export const reviewsService = {
   async healthCheck() {
@@ -32,6 +34,23 @@ export const reviewsService = {
 
   async getByAlbum(albumId: string, pagination: Pagination) {
     return reviewsRepository.findByAlbum(albumId, pagination);
+  },
+
+  async getFeed(viewerId: string | undefined, rawScope: string, pagination: Pagination) {
+    if (rawScope !== 'all' && rawScope !== 'following') {
+      throw new AppError('Invalid review feed scope', 400);
+    }
+
+    const scope = rawScope as ReviewsFeedScope;
+    if (scope === 'following' && !viewerId) {
+      throw new AppError('Authentication required for following feed', 401);
+    }
+
+    const followingIds = scope === 'following'
+      ? await followsRepository.listFollowingIds(viewerId!)
+      : undefined;
+
+    return reviewsRepository.findFeed(pagination, followingIds);
   },
 
   async getByUser(userId: string, pagination: Pagination) {

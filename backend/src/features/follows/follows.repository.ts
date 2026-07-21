@@ -62,6 +62,16 @@ export const followsRepository = {
     return (data ?? []).map((row: Record<string, unknown>) => row.users);
   },
 
+  async listFollowingIds(userId: string) {
+    const { data, error } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', userId);
+
+    if (error) throw new AppError('Failed to fetch following', 500, error);
+    return (data ?? []).map((row: { following_id: string }) => row.following_id);
+  },
+
   async countFollowers(userId: string) {
     const { count, error } = await supabase
       .from('follows')
