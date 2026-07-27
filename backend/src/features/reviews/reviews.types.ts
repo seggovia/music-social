@@ -12,6 +12,7 @@ export interface ReviewFeedItem {
   rating: number;
   content: string;
   createdAt: string;
+  commentCount: number;
   author: {
     username: string;
     avatarUrl: string | null;

@@ -1,7 +1,14 @@
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { apiClient } from '@/shared/api/client';
 import type { PaginatedResponse } from '@/shared/types';
-import type { CreateReviewInput, FeedReview, Review, ReviewFeedScope, UpdateReviewInput } from '../types';
+import type {
+  CreateReviewInput,
+  FeedReview,
+  Review,
+  ReviewComment,
+  ReviewFeedScope,
+  UpdateReviewInput,
+} from '../types';
 
 function authOptions(): RequestInit {
   const token = useAuthStore.getState().accessToken;
@@ -26,6 +33,25 @@ export const reviewsApi = {
 
   getById: (id: string) =>
     apiClient.get<Review>(`/reviews/${id}`),
+
+  getComments: (reviewId: string, page = 1, limit = 10) =>
+    apiClient.get<PaginatedResponse<ReviewComment>>(
+      `/reviews/${encodeURIComponent(reviewId)}/comments?page=${page}&limit=${limit}`,
+      authOptions(),
+    ),
+
+  createComment: (reviewId: string, content: string) =>
+    apiClient.post<ReviewComment>(
+      `/reviews/${encodeURIComponent(reviewId)}/comments`,
+      { content },
+      authOptions(),
+    ),
+
+  deleteComment: (reviewId: string, commentId: string) =>
+    apiClient.delete<void>(
+      `/reviews/${encodeURIComponent(reviewId)}/comments/${encodeURIComponent(commentId)}`,
+      authOptions(),
+    ),
 
   update: (id: string, data: UpdateReviewInput) =>
     apiClient.put<Review>(`/reviews/${id}`, data, authOptions()),
