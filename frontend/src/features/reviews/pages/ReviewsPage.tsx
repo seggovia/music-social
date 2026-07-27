@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { ROUTES } from '@/shared/lib/constants';
+import { ReviewComments } from '../components/ReviewComments';
 import { useReviewsFeedStore } from '../stores/reviewsFeedStore';
 import type { FeedReview, ReviewFeedScope } from '../types';
 import styles from './ReviewsPage.module.css';
@@ -103,6 +104,7 @@ function ReviewCard({ review }: { review: FeedReview }) {
         <p className={review.content ? styles.reviewText : `${styles.reviewText} ${styles.reviewTextEmpty}`}>
           {review.content || 'Esta reseña no incluye texto.'}
         </p>
+        <ReviewComments reviewId={review.id} initialCount={review.commentCount} />
       </div>
     </article>
   );

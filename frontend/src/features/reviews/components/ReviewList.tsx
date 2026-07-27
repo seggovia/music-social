@@ -1,5 +1,6 @@
 import { useReviewsStore } from '../stores/reviewsStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { ReviewComments } from './ReviewComments';
 import styles from './ReviewList.module.css';
 
 export function ReviewList() {
@@ -29,6 +30,10 @@ export function ReviewList() {
               </button>
             </div>
           )}
+          <ReviewComments
+            reviewId={review.id}
+            initialCount={Number(review.review_comments?.[0]?.count ?? 0)}
+          />
         </article>
       ))}
       {isLoadingMore ? <p className={styles.loading}>Loading more reviews...</p> : null}

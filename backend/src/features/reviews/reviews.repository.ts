@@ -30,6 +30,7 @@ interface FeedReviewRecord {
   created_at: string;
   users?: UserJoin | UserJoin[] | null;
   albums?: AlbumJoin | AlbumJoin[] | null;
+  review_comments?: Array<{ count?: number | string | null }> | { count?: number | string | null } | null;
 }
 
 function singleRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -41,6 +42,7 @@ function mapFeedReview(record: FeedReviewRecord): ReviewFeedItem {
   const author = singleRelation(record.users);
   const album = singleRelation(record.albums);
   const artist = singleRelation(album?.artists);
+  const commentCount = singleRelation(record.review_comments)?.count;
 
   return {
     id: record.id,
@@ -49,6 +51,7 @@ function mapFeedReview(record: FeedReviewRecord): ReviewFeedItem {
     rating: Number(record.rating),
     content: record.content ?? '',
     createdAt: record.created_at,
+    commentCount: Number(commentCount ?? 0),
     author: {
       username: author?.username ?? 'Unknown user',
       avatarUrl: author?.avatar_url ?? null,
@@ -95,7 +98,7 @@ export const reviewsRepository = {
     let query = supabase
       .from('reviews')
       .select(
-        'id, user_id, album_id, rating, content, created_at, users(username, avatar_url), albums(id, title, cover_url, artists(id, name))',
+        'id, user_id, album_id, rating, content, created_at, users(username, avatar_url), albums(id, title, cover_url, artists(id, name)), review_comments(count)',
         { count: 'exact' },
       )
       .order('created_at', { ascending: false })
@@ -118,7 +121,7 @@ export const reviewsRepository = {
   async findByAlbum(albumId: string, pagination?: Pagination) {
     let query = supabase
       .from('reviews')
-      .select('*, users(username, avatar_url)', pagination ? { count: 'exact' } : undefined)
+      .select('*, users(username, avatar_url), review_comments(count)', pagination ? { count: 'exact' } : undefined)
       .eq('album_id', albumId)
       .order('created_at', { ascending: false });
 

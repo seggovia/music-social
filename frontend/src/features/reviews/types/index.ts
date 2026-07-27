@@ -6,6 +6,7 @@ export interface Review {
   content: string;
   created_at: string;
   updated_at: string;
+  review_comments?: Array<{ count: number }>;
   users?: {
     username: string;
     avatar_url: string | null;
@@ -37,6 +38,7 @@ export interface FeedReview {
   rating: number;
   content: string;
   createdAt: string;
+  commentCount: number;
   author: {
     username: string;
     avatarUrl: string | null;
@@ -49,5 +51,18 @@ export interface FeedReview {
       id: string;
       name: string;
     };
+  };
+}
+
+export interface ReviewComment {
+  id: string;
+  reviewId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    username: string;
+    avatarUrl: string | null;
   };
 }
