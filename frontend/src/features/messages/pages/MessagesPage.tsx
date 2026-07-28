@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useMessagesStore } from '../stores/messagesStore';
@@ -13,6 +13,8 @@ const CONTEXT_MENU_ITEM_HEIGHT = 44;
 const CONTEXT_MENU_PADDING = 10;
 const CONTEXT_MENU_GAP = 6;
 const VIEWPORT_MARGIN = 8;
+const NEAR_BOTTOM_THRESHOLD = 96;
+const LOAD_OLDER_THRESHOLD = 120;
 
 interface MessageActions {
   isOwn: boolean;
@@ -25,6 +27,12 @@ interface MessageActions {
 interface ContextMenuPosition {
   top: number;
   left: number;
+}
+
+interface ScrollAnchor {
+  scrollHeight: number;
+  scrollTop: number;
+  messageCount: number;
 }
 
 function getMessageAgeMs(message: Message, now: number) {
@@ -57,6 +65,7 @@ export function MessagesPage() {
     currentConversation,
     messages,
     messagesHasMore,
+    isLoading,
     isLoadingMore,
     fetchConversations,
     fetchMessages,
@@ -78,6 +87,13 @@ export function MessagesPage() {
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
+  const messagesAreaRef = useRef<HTMLDivElement>(null);
+  const pendingInitialScrollRef = useRef<string | null>(null);
+  const olderScrollAnchorRef = useRef<ScrollAnchor | null>(null);
+  const isNearBottomRef = useRef(true);
+  const lastScrollTopRef = useRef(0);
+  const previousLastMessageIdRef = useRef<string | null | undefined>(undefined);
+  const previousPinnedCountRef = useRef(0);
 
   useEffect(() => {
     void fetchConversations();
@@ -142,6 +158,11 @@ export function MessagesPage() {
 
     const conversation = conversations.find((item) => item.id === conversationId) ?? null;
     if (conversation) {
+      pendingInitialScrollRef.current = conversationId;
+      olderScrollAnchorRef.current = null;
+      isNearBottomRef.current = true;
+      lastScrollTopRef.current = 0;
+      previousLastMessageIdRef.current = undefined;
       useMessagesStore.setState({ currentConversation: conversation });
       setMobileView('chat');
       void fetchMessages(conversationId);
@@ -149,14 +170,125 @@ export function MessagesPage() {
   }, [conversations, fetchMessages, location.state]);
 
   const me = useMemo(() => user ?? null, [user]);
+  const displayMessages = useMemo(
+    () => localMessages.filter((message) => !(message.deleted_for_sender && message.sender_id === me?.id)),
+    [localMessages, me?.id],
+  );
+
+  useLayoutEffect(() => {
+    const messagesArea = messagesAreaRef.current;
+    if (!messagesArea) return;
+
+    const latestMessageId = displayMessages.at(-1)?.id ?? null;
+    const olderAnchor = olderScrollAnchorRef.current;
+
+    if (olderAnchor && localMessages.length > olderAnchor.messageCount) {
+      const addedHeight = messagesArea.scrollHeight - olderAnchor.scrollHeight;
+      messagesArea.scrollTop = olderAnchor.scrollTop + addedHeight;
+      lastScrollTopRef.current = messagesArea.scrollTop;
+      isNearBottomRef.current = (
+        messagesArea.scrollHeight - messagesArea.scrollTop - messagesArea.clientHeight
+      ) <= NEAR_BOTTOM_THRESHOLD;
+      olderScrollAnchorRef.current = null;
+      previousLastMessageIdRef.current = latestMessageId;
+      previousPinnedCountRef.current = pinnedMessages.length;
+      return;
+    }
+
+    const shouldApplyInitialScroll = pendingInitialScrollRef.current === currentConversation?.id
+      && !isLoading
+      && localMessages === messages;
+
+    if (shouldApplyInitialScroll) {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      lastScrollTopRef.current = messagesArea.scrollTop;
+      isNearBottomRef.current = true;
+      pendingInitialScrollRef.current = null;
+      previousLastMessageIdRef.current = latestMessageId;
+      previousPinnedCountRef.current = pinnedMessages.length;
+      return;
+    }
+
+    const previousLastMessageId = previousLastMessageIdRef.current;
+    const hasNewLastMessage = previousLastMessageId !== undefined
+      && latestMessageId !== previousLastMessageId;
+    const pinnedBarChanged = previousPinnedCountRef.current !== pinnedMessages.length;
+
+    if ((hasNewLastMessage || pinnedBarChanged) && isNearBottomRef.current) {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      lastScrollTopRef.current = messagesArea.scrollTop;
+      isNearBottomRef.current = true;
+    }
+
+    previousLastMessageIdRef.current = latestMessageId;
+    previousPinnedCountRef.current = pinnedMessages.length;
+  }, [
+    currentConversation?.id,
+    displayMessages,
+    isLoading,
+    localMessages,
+    messages,
+    pinnedMessages.length,
+  ]);
+
+  const prepareConversationScroll = (conversationId: string) => {
+    pendingInitialScrollRef.current = conversationId;
+    olderScrollAnchorRef.current = null;
+    isNearBottomRef.current = true;
+    lastScrollTopRef.current = 0;
+    previousLastMessageIdRef.current = undefined;
+    previousPinnedCountRef.current = 0;
+  };
 
   const handleSelectConversation = async (conversationId: string) => {
     const conversation = conversations.find((item) => item.id === conversationId);
     if (!conversation) return;
 
+    prepareConversationScroll(conversationId);
     useMessagesStore.setState({ currentConversation: conversation });
     setMobileView('chat');
     await fetchMessages(conversationId);
+  };
+
+  const handleLoadOlderMessages = () => {
+    const messagesArea = messagesAreaRef.current;
+    if (
+      !messagesArea
+      || !currentConversation
+      || !messagesHasMore
+      || isLoadingMore
+      || olderScrollAnchorRef.current
+    ) {
+      return;
+    }
+
+    const anchor: ScrollAnchor = {
+      scrollHeight: messagesArea.scrollHeight,
+      scrollTop: messagesArea.scrollTop,
+      messageCount: localMessages.length,
+    };
+    olderScrollAnchorRef.current = anchor;
+
+    void loadOlderMessages(currentConversation.id).then(() => {
+      const loadedMessageCount = useMessagesStore.getState().messages.length;
+      if (loadedMessageCount <= anchor.messageCount && olderScrollAnchorRef.current === anchor) {
+        olderScrollAnchorRef.current = null;
+      }
+    });
+  };
+
+  const handleMessagesScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const messagesArea = event.currentTarget;
+    const currentScrollTop = messagesArea.scrollTop;
+    const isMovingUp = currentScrollTop < lastScrollTopRef.current - 1;
+    const distanceToBottom = messagesArea.scrollHeight - currentScrollTop - messagesArea.clientHeight;
+
+    isNearBottomRef.current = distanceToBottom <= NEAR_BOTTOM_THRESHOLD;
+    lastScrollTopRef.current = currentScrollTop;
+
+    if (isMovingUp && currentScrollTop <= LOAD_OLDER_THRESHOLD) {
+      handleLoadOlderMessages();
+    }
   };
 
   const handleBackToConversations = () => {
@@ -328,8 +460,6 @@ export function MessagesPage() {
       : null
     : null;
 
-  const displayMessages = localMessages.filter((message) => !(message.deleted_for_sender && message.sender_id === me?.id));
-
   return (
     <div className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}>
       <aside className={styles.sidebar}>
@@ -435,12 +565,21 @@ export function MessagesPage() {
               </section>
             )}
 
-            <div className={styles.messagesArea}>
+            <div
+              ref={messagesAreaRef}
+              className={styles.messagesArea}
+              onScroll={handleMessagesScroll}
+              onWheel={(event) => {
+                if (event.deltaY < 0 && event.currentTarget.scrollTop <= LOAD_OLDER_THRESHOLD) {
+                  handleLoadOlderMessages();
+                }
+              }}
+            >
               {messagesHasMore && (
                 <button
                   type="button"
                   className={styles.loadOlderButton}
-                  onClick={() => void loadOlderMessages(currentConversation.id)}
+                  onClick={handleLoadOlderMessages}
                   disabled={isLoadingMore}
                 >
                   {isLoadingMore ? 'Loading...' : 'Load older messages'}
