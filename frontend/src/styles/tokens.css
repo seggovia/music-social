@@ -71,6 +71,11 @@
 
   /* Layout */
   --max-width: 1120px;
+  /* Reference breakpoints. CSS custom properties cannot be used directly
+     inside @media conditions, so modules mirror these values there. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;

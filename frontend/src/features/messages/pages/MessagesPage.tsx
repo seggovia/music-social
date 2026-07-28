@@ -38,6 +38,7 @@ export function MessagesPage() {
   const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | null>(null);
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
 
   useEffect(() => {
     void fetchConversations();
@@ -90,6 +91,7 @@ export function MessagesPage() {
     const conversation = conversations.find((item) => item.id === conversationId) ?? null;
     if (conversation) {
       useMessagesStore.setState({ currentConversation: conversation });
+      setMobileView('chat');
       void fetchMessages(conversationId);
     }
   }, [conversations, fetchMessages, location.state]);
@@ -101,7 +103,13 @@ export function MessagesPage() {
     if (!conversation) return;
 
     useMessagesStore.setState({ currentConversation: conversation });
+    setMobileView('chat');
     await fetchMessages(conversationId);
+  };
+
+  const handleBackToConversations = () => {
+    setActiveMenuMessageId(null);
+    setMobileView('list');
   };
 
   const handleSend = async () => {
@@ -223,7 +231,7 @@ export function MessagesPage() {
   const displayMessages = localMessages.filter((message) => !(message.deleted_for_sender && message.sender_id === me?.id));
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <p className={styles.sidebarEyebrow}>Direct messages</p>
@@ -286,6 +294,15 @@ export function MessagesPage() {
         {currentConversation && otherUser ? (
           <>
             <div className={styles.panelHeader}>
+              <button
+                type="button"
+                className={styles.mobileBackButton}
+                onClick={handleBackToConversations}
+                aria-label="Volver a conversaciones"
+              >
+                <span aria-hidden="true">←</span>
+                <span>Volver</span>
+              </button>
               <div className={styles.panelAvatarWrap}>
                 <img
                   src={otherUser.avatar_url ?? 'https://placehold.co/40x40?text=U'}

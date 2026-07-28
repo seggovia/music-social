@@ -17,6 +17,7 @@
 }
 
 .card {
+  width: 100%;
   background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -64,6 +65,8 @@
   margin-top: var(--space-3);
   color: var(--color-text);
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .date {
@@ -122,4 +125,41 @@
 .loadMoreButton:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .heading {
+    margin-bottom: var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .cardHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .rating {
+    min-height: 32px;
+  }
+
+  .deleteButton {
+    min-height: 44px;
+    margin-top: var(--space-2);
+  }
+
+  .loadMoreButton {
+    width: 100%;
+    min-height: 44px;
+  }
 }
