@@ -2,7 +2,8 @@
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   height: calc(100vh - 72px);
-  min-height: 620px;
+  height: calc(100dvh - 72px);
+  min-height: 0;
   width: 100%;
   background: var(--color-bg);
   color: var(--color-text);
@@ -12,7 +13,10 @@
 .sidebar {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
   background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg));
   border-right: 1px solid var(--color-border);
 }
@@ -185,7 +189,10 @@
 .panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--color-bg-soft) 78%, transparent), transparent 32%),
     var(--color-bg);
@@ -193,6 +200,7 @@
 
 .panelHeader {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: var(--space-3);
   min-height: 76px;
@@ -218,6 +226,7 @@
 
 .pinnedBar {
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: stretch;
@@ -282,7 +291,7 @@
 
 .messagesArea {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-3);
   min-height: 0;
@@ -524,34 +533,28 @@
 }
 
 .contextMenu {
-  position: absolute;
-  top: 28px;
-  right: -8px;
-  z-index: 10;
-  min-width: 190px;
-  padding: var(--space-1) 0;
+  position: fixed;
+  z-index: 100;
+  width: min(220px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  padding: var(--space-1);
   background: var(--color-surface-overlay);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
 }
 
-.contextMenuOwn {
-  right: auto;
-  left: -8px;
-}
-
-.contextMenuAbove {
-  top: auto;
-  bottom: 28px;
-}
-
 .contextMenuItem {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
-  padding: 9px 16px;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
   background: none;
   border: 0;
+  border-radius: var(--radius-sm);
   text-align: left;
   color: var(--color-text);
   font-size: var(--text-sm);
@@ -570,6 +573,9 @@
 
 .inputArea {
   display: flex;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
   background: color-mix(in srgb, var(--color-surface) 88%, transparent);
@@ -578,6 +584,7 @@
 
 .textarea {
   flex: 1;
+  min-width: 0;
   min-height: 48px;
   max-height: 140px;
   resize: none;
@@ -605,6 +612,7 @@
 }
 
 .sendButton {
+  flex: 0 0 auto;
   min-width: 92px;
   border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
   border-radius: var(--radius-sm);
@@ -633,6 +641,8 @@
 @media (max-width: 1024px) {
   .page {
     grid-template-columns: 300px minmax(0, 1fr);
+    height: calc(100vh - 120px);
+    height: calc(100dvh - 120px);
   }
 
   .pinnedBar {

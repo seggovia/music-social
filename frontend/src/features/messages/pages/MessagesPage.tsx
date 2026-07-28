@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { useMessagesStore } from '../stores/messagesStore';
 import type { Message, MessageDeleteMode } from '../types';
@@ -7,10 +8,47 @@ import styles from './MessagesPage.module.css';
 
 const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const UNSEND_FOR_ALL_WINDOW_MS = 15 * 60 * 1000;
+const CONTEXT_MENU_WIDTH = 220;
+const CONTEXT_MENU_ITEM_HEIGHT = 44;
+const CONTEXT_MENU_PADDING = 10;
+const CONTEXT_MENU_GAP = 6;
+const VIEWPORT_MARGIN = 8;
+
+interface MessageActions {
+  isOwn: boolean;
+  canPin: boolean;
+  canEdit: boolean;
+  canDeleteForMe: boolean;
+  canDeleteForAll: boolean;
+}
+
+interface ContextMenuPosition {
+  top: number;
+  left: number;
+}
 
 function getMessageAgeMs(message: Message, now: number) {
   const createdAt = new Date(message.created_at).getTime();
   return Number.isNaN(createdAt) ? Number.POSITIVE_INFINITY : now - createdAt;
+}
+
+function getMessageActions(message: Message, userId: string | undefined, now: number): MessageActions {
+  const isOwn = Boolean(userId && (message.sender_id === userId || message.sender?.id === userId));
+  const isDeletedForAll = message.deleted_for_all;
+  const messageAgeMs = getMessageAgeMs(message, now);
+
+  return {
+    isOwn,
+    canPin: !isDeletedForAll,
+    canEdit: isOwn && !isDeletedForAll && !message.deleted_for_sender && messageAgeMs < EDIT_WINDOW_MS,
+    canDeleteForMe: isOwn && !isDeletedForAll && !message.deleted_for_sender,
+    canDeleteForAll: isOwn && !isDeletedForAll && !message.deleted_for_sender
+      && messageAgeMs < UNSEND_FOR_ALL_WINDOW_MS,
+  };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), Math.max(min, max));
 }
 
 export function MessagesPage() {
@@ -36,6 +74,7 @@ export function MessagesPage() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingBody, setEditingBody] = useState('');
   const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState<ContextMenuPosition | null>(null);
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
@@ -75,11 +114,24 @@ export function MessagesPage() {
     const handleClickOutside = (event: MouseEvent) => {
       if (!(event.target as HTMLElement).closest(`.${styles.contextMenu}`) && !(event.target as HTMLElement).closest(`.${styles.menuButton}`)) {
         setActiveMenuMessageId(null);
+        setContextMenuPosition(null);
       }
     };
 
+    const handleViewportChange = () => {
+      setActiveMenuMessageId(null);
+      setContextMenuPosition(null);
+    };
+
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('scroll', handleViewportChange, true);
+    window.addEventListener('resize', handleViewportChange);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('scroll', handleViewportChange, true);
+      window.removeEventListener('resize', handleViewportChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -109,6 +161,7 @@ export function MessagesPage() {
 
   const handleBackToConversations = () => {
     setActiveMenuMessageId(null);
+    setContextMenuPosition(null);
     setMobileView('list');
   };
 
@@ -156,6 +209,7 @@ export function MessagesPage() {
     setEditingMessageId(message.id);
     setEditingBody(message.body);
     setActiveMenuMessageId(null);
+    setContextMenuPosition(null);
   };
 
   const handleCancelEdit = () => {
@@ -186,8 +240,8 @@ export function MessagesPage() {
     if (!currentConversation) return;
 
     const confirmationMessage = mode === 'sender'
-      ? 'Anular envio para ti? El mensaje se ocultara de tu conversacion.'
-      : 'Anular envio para ambos? Esta accion no se puede deshacer.';
+      ? '¿Anular envío para ti? El mensaje se ocultará de tu conversación.'
+      : '¿Anular envío para ambos? Esta acción no se puede deshacer.';
 
     if (!window.confirm(confirmationMessage)) return;
 
@@ -201,6 +255,7 @@ export function MessagesPage() {
         setPinnedMessages((prev) => prev.filter((item) => item.id !== message.id));
       }
       setActiveMenuMessageId(null);
+      setContextMenuPosition(null);
     } catch {
       // The store already reports the API error.
     }
@@ -213,11 +268,56 @@ export function MessagesPage() {
       const updatedMessage = await togglePin(currentConversation.id, message);
       setLocalMessages((prev) => prev.map((item) => (item.id === message.id ? updatedMessage : item)));
       setActiveMenuMessageId(null);
+      setContextMenuPosition(null);
       const data = await fetchPinnedMessages(currentConversation.id);
       setPinnedMessages(data.filter((item) => !(item.deleted_for_sender && item.sender_id === me?.id)).slice(0, 2));
     } catch {
       // The store already reports the API error.
     }
+  };
+
+  const handleToggleMessageMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    messageId: string,
+    actions: MessageActions,
+  ) => {
+    event.stopPropagation();
+
+    if (activeMenuMessageId === messageId) {
+      setActiveMenuMessageId(null);
+      setContextMenuPosition(null);
+      return;
+    }
+
+    const itemCount = [
+      actions.canPin,
+      actions.canEdit,
+      actions.canDeleteForMe,
+      actions.canDeleteForAll,
+    ].filter(Boolean).length;
+    const estimatedHeight = itemCount * CONTEXT_MENU_ITEM_HEIGHT + CONTEXT_MENU_PADDING;
+    const triggerRect = event.currentTarget.getBoundingClientRect();
+    const preferredLeft = actions.isOwn
+      ? triggerRect.right - CONTEXT_MENU_WIDTH
+      : triggerRect.left;
+    const left = clamp(
+      preferredLeft,
+      VIEWPORT_MARGIN,
+      window.innerWidth - CONTEXT_MENU_WIDTH - VIEWPORT_MARGIN,
+    );
+    const shouldOpenAbove = triggerRect.bottom + CONTEXT_MENU_GAP + estimatedHeight
+      > window.innerHeight;
+    const preferredTop = shouldOpenAbove
+      ? triggerRect.top - CONTEXT_MENU_GAP - estimatedHeight
+      : triggerRect.bottom + CONTEXT_MENU_GAP;
+    const top = clamp(
+      preferredTop,
+      VIEWPORT_MARGIN,
+      window.innerHeight - estimatedHeight - VIEWPORT_MARGIN,
+    );
+
+    setContextMenuPosition({ top, left });
+    setActiveMenuMessageId(messageId);
   };
 
   const otherUser = currentConversation
@@ -346,23 +446,13 @@ export function MessagesPage() {
                   {isLoadingMore ? 'Loading...' : 'Load older messages'}
                 </button>
               )}
-              {displayMessages.map((message, index) => {
-                const isOwn = message.sender_id === me?.id;
-                const messageAgeMs = getMessageAgeMs(message, now);
+              {displayMessages.map((message) => {
+                const actions = getMessageActions(message, me?.id, now);
+                const { isOwn, canPin, canEdit, canDeleteForMe, canDeleteForAll } = actions;
                 const isDeletedForAll = message.deleted_for_all;
-                const canPin = !isDeletedForAll;
-                const canEdit = isOwn && !isDeletedForAll && messageAgeMs < EDIT_WINDOW_MS;
-                const canDeleteForMe = isOwn && !isDeletedForAll;
-                const canDeleteForAll = isOwn && !isDeletedForAll && messageAgeMs < UNSEND_FOR_ALL_WINDOW_MS;
                 const hasContextMenuActions = canPin || canEdit || canDeleteForMe || canDeleteForAll;
                 const isEditing = editingMessageId === message.id;
-                const isMenuOpen = activeMenuMessageId === message.id;
-                const shouldOpenMenuAbove = index >= Math.max(displayMessages.length - 3, 0);
-                const contextMenuClassName = [
-                  styles.contextMenu,
-                  isOwn ? styles.contextMenuOwn : '',
-                  shouldOpenMenuAbove ? styles.contextMenuAbove : '',
-                ].filter(Boolean).join(' ');
+                const isMenuOpen = activeMenuMessageId === message.id && contextMenuPosition !== null;
 
                 return (
                   <div key={message.id} className={`${styles.messageRow} ${isOwn ? styles.ownMessage : ''}`}>
@@ -406,42 +496,48 @@ export function MessagesPage() {
                         <button
                           type="button"
                           className={`${styles.menuButton} ${isOwn ? styles.menuButtonLeft : ''}`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setActiveMenuMessageId(isMenuOpen ? null : message.id);
-                          }}
+                          onClick={(event) => handleToggleMessageMenu(event, message.id, actions)}
+                          aria-label="Abrir opciones del mensaje"
+                          aria-expanded={isMenuOpen}
+                          aria-haspopup="menu"
                         >
                           ...
                         </button>
                       )}
 
-                      {isMenuOpen && !isEditing && hasContextMenuActions && (
-                        <div className={contextMenuClassName}>
+                      {isMenuOpen && !isEditing && hasContextMenuActions && contextMenuPosition && createPortal(
+                        <div
+                          className={styles.contextMenu}
+                          style={{ top: contextMenuPosition.top, left: contextMenuPosition.left }}
+                          role="menu"
+                          aria-label="Opciones del mensaje"
+                        >
                           {canPin && (
-                            <button type="button" className={styles.contextMenuItem} onClick={() => void handleTogglePin(message)}>
+                            <button type="button" role="menuitem" className={styles.contextMenuItem} onClick={() => void handleTogglePin(message)}>
                               {message.pinned ? 'Unpin' : 'Pin'}
                             </button>
                           )}
                           {(canEdit || canDeleteForMe || canDeleteForAll) && (
                             <>
                               {canEdit && (
-                                <button type="button" className={styles.contextMenuItem} onClick={() => handleStartEdit(message)}>
+                                <button type="button" role="menuitem" className={styles.contextMenuItem} onClick={() => handleStartEdit(message)}>
                                   Edit
                                 </button>
                               )}
                               {canDeleteForMe && (
-                                <button type="button" className={styles.contextMenuItem} onClick={() => void handleDelete(message, 'sender')}>
-                                  Anular envio para mi
+                                <button type="button" role="menuitem" className={styles.contextMenuItem} onClick={() => void handleDelete(message, 'sender')}>
+                                  Anular envío para mí
                                 </button>
                               )}
                               {canDeleteForAll && (
-                                <button type="button" className={`${styles.contextMenuItem} ${styles.contextMenuItemDanger}`} onClick={() => void handleDelete(message, 'all')}>
-                                  Anular envio para ambos
+                                <button type="button" role="menuitem" className={`${styles.contextMenuItem} ${styles.contextMenuItemDanger}`} onClick={() => void handleDelete(message, 'all')}>
+                                  Anular envío para ambos
                                 </button>
                               )}
                             </>
                           )}
-                        </div>
+                        </div>,
+                        document.body,
                       )}
                     </div>
                   </div>
