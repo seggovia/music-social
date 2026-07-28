@@ -18,6 +18,7 @@ export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [albumSearchQuery, setAlbumSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -44,8 +45,19 @@ export function Layout() {
         setSearchOpen(false);
       }
     }
+    function handleEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        setSearchOpen(false);
+        setMobileNavOpen(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   useEffect(() => {
@@ -73,6 +85,8 @@ export function Layout() {
 
   useEffect(() => {
     setSearchOpen(false);
+    setMenuOpen(false);
+    setMobileNavOpen(false);
   }, [location.pathname]);
 
   function handleAlbumSearchSubmit(event: FormEvent<HTMLFormElement>) {
@@ -92,11 +106,13 @@ export function Layout() {
 
   function goToProfile() {
     setMenuOpen(false);
+    setMobileNavOpen(false);
     if (user) navigate(`${ROUTES.USERS}/${user.username}`);
   }
 
   function handleLogout() {
     setMenuOpen(false);
+    setMobileNavOpen(false);
     logout();
     navigate(ROUTES.HOME);
   }
@@ -110,112 +126,130 @@ export function Layout() {
             <span className={styles.brandText}>music<span>social</span></span>
           </Link>
 
-          <div className={styles.links}>
-            <NavLink to={ROUTES.ALBUMS} className={navLinkClass}>Albums</NavLink>
-            <NavLink to={ROUTES.ARTISTS} className={navLinkClass}>Artists</NavLink>
-            <NavLink to={ROUTES.CHARTS} className={navLinkClass}>Charts</NavLink>
-            <NavLink to={ROUTES.REVIEWS} className={navLinkClass}>Reviews</NavLink>
-            <NavLink to={ROUTES.MESSAGES} className={navLinkClass}>Messages</NavLink>
-            <NavLink to={ROUTES.USERS} className={navLinkClass}>Users</NavLink>
-          </div>
+          <button
+            type="button"
+            className={styles.mobileMenuButton}
+            onClick={() => setMobileNavOpen((open) => !open)}
+            aria-label={mobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileNavOpen}
+            aria-controls="mobile-navigation"
+          >
+            <span className={styles.hamburgerLine} />
+            <span className={styles.hamburgerLine} />
+            <span className={styles.hamburgerLine} />
+          </button>
 
-          <div className={styles.navSearchShell} ref={searchRef}>
-            <form className={styles.navSearch} role="search" onSubmit={handleAlbumSearchSubmit}>
-              <input
-                type="search"
-                value={albumSearchQuery}
-                onChange={(event) => {
-                  setAlbumSearchQuery(event.target.value);
-                  setSearchOpen(Boolean(event.target.value.trim()));
-                }}
-                onFocus={() => setSearchOpen(Boolean(trimmedAlbumSearchQuery))}
-                onKeyDown={handleAlbumSearchKeyDown}
-                className={styles.navSearchInput}
-                placeholder="Search albums"
-                aria-label="Search albums"
-                aria-expanded={showSearchDropdown}
-                aria-controls="album-search-results"
-              />
-            </form>
+          <div
+            id="mobile-navigation"
+            className={mobileNavOpen ? `${styles.navContent} ${styles.navContentOpen}` : styles.navContent}
+          >
+            <div className={styles.links}>
+              <NavLink to={ROUTES.ALBUMS} className={navLinkClass}>Albums</NavLink>
+              <NavLink to={ROUTES.ARTISTS} className={navLinkClass}>Artists</NavLink>
+              <NavLink to={ROUTES.CHARTS} className={navLinkClass}>Charts</NavLink>
+              <NavLink to={ROUTES.REVIEWS} className={navLinkClass}>Reviews</NavLink>
+              <NavLink to={ROUTES.MESSAGES} className={navLinkClass}>Messages</NavLink>
+              <NavLink to={ROUTES.USERS} className={navLinkClass}>Users</NavLink>
+            </div>
 
-            {showSearchDropdown ? (
-              <div id="album-search-results" className={styles.searchDropdown}>
-                {isAutocompleteLoading ? (
-                  <div className={styles.searchLoading}>
-                    <span className={styles.searchSpinner} aria-hidden="true" />
-                    <span>Searching albums...</span>
-                  </div>
-                ) : null}
+            <div className={styles.navSearchShell} ref={searchRef}>
+              <form className={styles.navSearch} role="search" onSubmit={handleAlbumSearchSubmit}>
+                <input
+                  type="search"
+                  value={albumSearchQuery}
+                  onChange={(event) => {
+                    setAlbumSearchQuery(event.target.value);
+                    setSearchOpen(Boolean(event.target.value.trim()));
+                  }}
+                  onFocus={() => setSearchOpen(Boolean(trimmedAlbumSearchQuery))}
+                  onKeyDown={handleAlbumSearchKeyDown}
+                  className={styles.navSearchInput}
+                  placeholder="Search albums"
+                  aria-label="Search albums"
+                  aria-expanded={showSearchDropdown}
+                  aria-controls="album-search-results"
+                />
+              </form>
 
-                {!isAutocompleteLoading && autocompleteResults.length > 0 ? (
-                  <div className={styles.searchResultsList}>
-                    {autocompleteResults.map((album) => (
-                      <Link
-                        key={album.mbid}
-                        to={`${ROUTES.ALBUMS}/${album.mbid}`}
-                        className={styles.searchResultItem}
-                        onClick={() => setSearchOpen(false)}
+              {showSearchDropdown ? (
+                <div id="album-search-results" className={styles.searchDropdown}>
+                  {isAutocompleteLoading ? (
+                    <div className={styles.searchLoading}>
+                      <span className={styles.searchSpinner} aria-hidden="true" />
+                      <span>Searching albums...</span>
+                    </div>
+                  ) : null}
+
+                  {!isAutocompleteLoading && autocompleteResults.length > 0 ? (
+                    <div className={styles.searchResultsList}>
+                      {autocompleteResults.map((album) => (
+                        <Link
+                          key={album.mbid}
+                          to={`${ROUTES.ALBUMS}/${album.mbid}`}
+                          className={styles.searchResultItem}
+                          onClick={() => setSearchOpen(false)}
+                        >
+                          <img
+                            src={album.coverUrl ?? 'https://placehold.co/48x48?text=No+Cover'}
+                            alt=""
+                            className={styles.searchResultCover}
+                            loading="lazy"
+                          />
+                          <span className={styles.searchResultCopy}>
+                            <span className={styles.searchResultTitle}>{album.title}</span>
+                            <span className={styles.searchResultArtist}>{album.artist}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {!isAutocompleteLoading && autocompleteResults.length === 0 ? (
+                    <p className={styles.searchEmpty}>No albums found.</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className={styles.authActions}>
+              {user ? (
+                <div className={styles.userMenu} ref={menuRef}>
+                  <button
+                    type="button"
+                    className={styles.userMenuTrigger}
+                    onClick={() => setMenuOpen((open) => !open)}
+                    aria-expanded={menuOpen}
+                  >
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt="" className={styles.userAvatar} />
+                    ) : (
+                      <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
+                    )}
+                    <span className={styles.userName}>{user.username}</span>
+                    <span className={styles.userChevron} aria-hidden="true">v</span>
+                  </button>
+                  {menuOpen && (
+                    <div className={styles.dropdown}>
+                      <button type="button" className={styles.dropdownItem} onClick={goToProfile}>
+                        My profile
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                        onClick={handleLogout}
                       >
-                        <img
-                          src={album.coverUrl ?? 'https://placehold.co/48x48?text=No+Cover'}
-                          alt=""
-                          className={styles.searchResultCover}
-                          loading="lazy"
-                        />
-                        <span className={styles.searchResultCopy}>
-                          <span className={styles.searchResultTitle}>{album.title}</span>
-                          <span className={styles.searchResultArtist}>{album.artist}</span>
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
-
-                {!isAutocompleteLoading && autocompleteResults.length === 0 ? (
-                  <p className={styles.searchEmpty}>No albums found.</p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          <div className={styles.authActions}>
-            {user ? (
-              <div className={styles.userMenu} ref={menuRef}>
-                <button
-                  type="button"
-                  className={styles.userMenuTrigger}
-                  onClick={() => setMenuOpen((open) => !open)}
-                  aria-expanded={menuOpen}
-                >
-                  {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className={styles.userAvatar} />
-                  ) : (
-                    <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
+                        Logout
+                      </button>
+                    </div>
                   )}
-                  <span className={styles.userName}>{user.username}</span>
-                  <span className={styles.userChevron} aria-hidden="true">v</span>
-                </button>
-                {menuOpen && (
-                  <div className={styles.dropdown}>
-                    <button type="button" className={styles.dropdownItem} onClick={goToProfile}>
-                      My profile
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link to={ROUTES.LOGIN} className={styles.link}>Login</Link>
-                <Link to={ROUTES.REGISTER} className={styles.link}>Register</Link>
-              </>
-            )}
+                </div>
+              ) : (
+                <>
+                  <Link to={ROUTES.LOGIN} className={styles.link}>Login</Link>
+                  <Link to={ROUTES.REGISTER} className={styles.link}>Register</Link>
+                </>
+              )}
+            </div>
           </div>
         </nav>
       </header>

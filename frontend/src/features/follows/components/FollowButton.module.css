@@ -41,3 +41,9 @@
   cursor: not-allowed;
   filter: saturate(0.7);
 }
+
+@media (max-width: 640px) {
+  .button {
+    min-height: 44px;
+  }
+}

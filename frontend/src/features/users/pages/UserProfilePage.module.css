@@ -1,4 +1,5 @@
 .page {
+  width: min(var(--max-width), 100%);
   max-width: var(--max-width);
   margin: 0 auto;
   padding: var(--space-10) var(--space-6) var(--space-16);
@@ -16,6 +17,12 @@
 .loadingCopy {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.loadingCopy > * {
+  max-width: 100%;
 }
 
 .loadingStats {
@@ -364,7 +371,11 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 768px) {
+  .page {
+    padding: var(--space-8) var(--space-4) var(--space-12);
+  }
+
   .profileHeader,
   .loadingHeader {
     grid-template-columns: 1fr;
@@ -396,14 +407,54 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .page {
-    padding: var(--space-8) var(--space-4) var(--space-12);
+    padding: var(--space-6) var(--space-3) var(--space-12);
+  }
+
+  .profileHeader {
+    padding-top: 0;
+    padding-bottom: var(--space-6);
+  }
+
+  .avatarFrame {
+    width: 96px;
+    height: 96px;
+  }
+
+  .username {
+    font-size: clamp(1.85rem, 10vw, 2.75rem);
+  }
+
+  .displayName {
+    font-size: var(--text-base);
+  }
+
+  .actionRow {
+    width: 100%;
+  }
+
+  .actionRow > * {
+    flex: 1 1 132px;
+    min-height: 44px;
+  }
+
+  .editButton,
+  .messageButton {
+    min-height: 44px;
   }
 
   .statsGrid,
   .loadingStats {
-    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .statCard {
+    padding: var(--space-3);
+  }
+
+  .statValue {
+    font-size: var(--text-xl);
   }
 
   .sectionHeader {
@@ -412,12 +463,13 @@
   }
 
   .reviewCard {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 68px minmax(0, 1fr);
     gap: var(--space-3);
+    padding: var(--space-3);
   }
 
   .reviewCover {
-    width: 72px;
+    width: 68px;
   }
 
   .reviewTopLine {
@@ -427,5 +479,9 @@
 
   .reviewRating {
     align-self: flex-start;
+  }
+
+  .editHeader {
+    padding-bottom: var(--space-4);
   }
 }

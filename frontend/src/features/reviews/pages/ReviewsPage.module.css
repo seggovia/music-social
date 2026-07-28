@@ -103,6 +103,14 @@
   color: var(--color-text);
 }
 
+.toggleButton:focus-visible,
+.loadMoreButton:focus-visible,
+.retryButton:focus-visible,
+.loginButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 .toggleButtonActive {
   background: var(--color-accent-soft);
   border-color: color-mix(in srgb, var(--color-accent) 38%, transparent);
@@ -444,7 +452,7 @@ a.artistName:hover {
   border-radius: var(--radius-lg);
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
   .page {
     padding: var(--space-8) var(--space-4) var(--space-12);
   }
@@ -509,6 +517,90 @@ a.artistName:hover {
   .rating {
     grid-column: 2;
     justify-self: start;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-6) var(--space-3) var(--space-12);
+  }
+
+  .headerPanel {
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .subtitle {
+    font-size: var(--text-base);
+  }
+
+  .totalPill {
+    display: flex;
+    align-items: baseline;
+    justify-items: initial;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .totalLabel {
+    margin-top: 0;
+  }
+
+  .feedToolbar {
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-6);
+  }
+
+  .toggleButton {
+    min-height: 44px;
+    padding-inline: var(--space-3);
+  }
+
+  .reviewCard {
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .avatarLink {
+    width: 40px;
+    height: 40px;
+  }
+
+  .albumRow {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-2);
+  }
+
+  .coverLink,
+  .cover {
+    width: 52px;
+    height: 52px;
+  }
+
+  .albumTitle {
+    font-size: var(--text-base);
+  }
+
+  .reviewText {
+    margin-top: var(--space-3);
+    line-height: 1.65;
+  }
+
+  .pagination {
+    margin-top: var(--space-6);
+  }
+
+  .loadMoreButton {
+    width: 100%;
+  }
+
+  .loginGate,
+  .emptyState {
+    min-height: 220px;
+    padding: var(--space-6) var(--space-4);
   }
 }
 

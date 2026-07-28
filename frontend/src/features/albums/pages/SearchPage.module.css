@@ -333,7 +333,7 @@
   font-size: var(--text-base);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .hero {
     grid-template-columns: 1fr;
   }
@@ -363,6 +363,29 @@
     font-size: var(--text-base);
   }
 
+  .primaryLink {
+    width: 100%;
+  }
+
+  .spotlightCard {
+    grid-template-columns: minmax(112px, 38%) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+  }
+
+  .spotlightCover {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .spotlightCopy {
+    align-content: center;
+    padding: var(--space-4);
+  }
+
+  .spotlightTitle {
+    font-size: var(--text-xl);
+  }
+
   .sectionHeader,
   .searchMessage {
     grid-template-columns: 1fr;
@@ -374,6 +397,7 @@
   }
 
   .albumGrid {
+    grid-template-columns: 1fr;
     gap: var(--space-4);
   }
 
