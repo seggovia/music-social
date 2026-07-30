@@ -1,115 +1,81 @@
+.card {
+  margin-top: var(--space-6);
+}
+
 .form {
-  margin-top: var(--space-10);
-  max-width: 760px;
-  padding: var(--space-6);
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: var(--space-4);
 }
 
 .heading {
-  margin-bottom: var(--space-4);
-  font-size: var(--text-2xl);
-}
-
-.error {
-  color: var(--color-error);
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-3);
-}
-
-.field {
-  margin-bottom: var(--space-4);
+  margin: 0;
+  color: var(--card-foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 800;
 }
 
 .label {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  color: var(--muted-foreground);
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
   font-weight: 700;
 }
 
 .ratingInput {
-  width: 60px;
-  min-height: 38px;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
+  width: 76px;
+  margin-left: auto;
   font-family: var(--font-mono);
-  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.ratingInput:hover {
-  border-color: var(--color-border-hover);
-}
-
-.ratingInput:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-focus);
+  font-variant-numeric: tabular-nums;
 }
 
 .textarea {
   width: 100%;
   min-height: 128px;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-  font-family: inherit;
   resize: vertical;
-  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  padding: var(--space-3) var(--space-4);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  line-height: 1.6;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .textarea::placeholder {
-  color: var(--color-text-subtle);
-}
-
-.textarea:hover {
-  border-color: var(--color-border-hover);
+  color: var(--muted-foreground);
 }
 
 .textarea:focus {
+  border-color: color-mix(in srgb, var(--ring) 58%, var(--border));
   outline: none;
-  border-color: var(--color-accent);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 16%, transparent);
 }
 
 .submitButton {
-  min-height: 44px;
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  color: var(--color-text-inverse);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.24);
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  justify-self: start;
 }
 
-.submitButton:hover:not(:disabled) {
-  box-shadow: 0 14px 34px rgba(108, 92, 231, 0.34);
-  filter: brightness(1.05);
-  transform: translateY(-1px);
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.submitButton:active:not(:disabled) {
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.22);
-  transform: translateY(0) scale(0.99);
-}
+@media (max-width: 640px) {
+  .card {
+    padding: var(--space-4);
+  }
 
-.submitButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  filter: saturate(0.7);
+  .submitButton {
+    width: 100%;
+  }
 }

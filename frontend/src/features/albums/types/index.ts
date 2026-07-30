@@ -9,7 +9,8 @@ export interface Album {
   releaseDate?: string | null;
   trackCount?: number | null;
   genres?: string[];
-  tracks?: Array<{ title: string; number?: number }>;
+  description?: string | null;
+  tracks?: Array<{ title: string; number?: number; duration?: string | null }>;
 }
 
 export interface AlbumsState {
