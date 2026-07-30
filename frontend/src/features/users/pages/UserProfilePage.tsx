@@ -1,19 +1,60 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { AlbumCard } from '@/features/albums/components/AlbumCard';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { FollowButton } from '@/features/follows';
-import { useMessagesStore } from '@/features/messages/stores/messagesStore';
 import { useFollowsStore } from '@/features/follows/stores/followsStore';
+import { useMessagesStore } from '@/features/messages/stores/messagesStore';
+import { Skeleton } from '@/shared/components/Skeleton';
+import { Badge, Button, Card } from '@/shared/components/ui';
 import { EditProfileForm } from '../components/EditProfileForm';
 import { SocialLinks } from '../components/SocialLinks';
 import { useUsersStore } from '../stores/usersStore';
 import styles from './UserProfilePage.module.css';
 
+const joinedDateFormatter = new Intl.DateTimeFormat('es-CL', {
+  month: 'long',
+  year: 'numeric',
+});
+
+function formatJoinedDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? 'Fecha desconocida'
+    : joinedDateFormatter.format(date);
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.94 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.53-1H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.53V3h4v.08A1.7 1.7 0 0 0 15.06 4.6a1.7 1.7 0 0 0 1.88-.34L17 4.2 19.83 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.93 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="5.5" width="17" height="15" rx="2" />
+      <path d="M8 3.5v4M16 3.5v4M3.5 10h17" />
+    </svg>
+  );
+}
+
+function MessageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3Z" />
+    </svg>
+  );
+}
+
 export function UserProfilePage() {
   const { username } = useParams();
   const { currentProfile, isLoading, fetchProfile } = useUsersStore();
-  const { stats } = useFollowsStore();
+  const stats = useFollowsStore((state) => state.stats);
+  const fetchStats = useFollowsStore((state) => state.fetchStats);
   const me = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const messagesStore = useMessagesStore();
@@ -24,48 +65,49 @@ export function UserProfilePage() {
     void fetchProfile(username);
   }, [fetchProfile, username]);
 
-  if (!username) return <p className={styles.page}>User not found.</p>;
+  useEffect(() => {
+    if (!currentProfile) return;
+    void fetchStats(currentProfile.id);
+  }, [currentProfile, fetchStats]);
+
+  if (!username) return <p className={styles.page}>Usuario no encontrado.</p>;
   if (isLoading) {
     return (
       <div className={styles.page}>
         <section className={styles.loadingHeader}>
           <Skeleton width="128px" height="128px" borderRadius="999px" />
           <div className={styles.loadingCopy}>
-            <Skeleton width="220px" height="20px" />
-            <Skeleton width="340px" height="48px" />
-            <div className={styles.loadingStats}>
-              <Skeleton height="74px" borderRadius="8px" />
-              <Skeleton height="74px" borderRadius="8px" />
-              <Skeleton height="74px" borderRadius="8px" />
-            </div>
+            <Skeleton width="min(360px, 100%)" height="48px" />
+            <Skeleton width="180px" height="18px" />
+            <Skeleton width="min(620px, 100%)" height="44px" />
           </div>
         </section>
+        <div className={styles.loadingStats}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} height="96px" borderRadius="17px" />
+          ))}
+        </div>
       </div>
     );
   }
-  if (!currentProfile) return <p className={styles.page}>No profile data available.</p>;
+  if (!currentProfile) return <p className={styles.page}>No hay datos disponibles para este perfil.</p>;
 
   const initial = currentProfile.username.charAt(0).toUpperCase();
   const isOwnProfile = me?.username === currentProfile.username;
+  const displayName = currentProfile.display_name || currentProfile.username;
   const profileStats = [
-    { label: 'Reviews', value: currentProfile.reviewCount },
-    ...(currentProfile.avgRating !== null
-      ? [{ label: 'Avg rating', value: currentProfile.avgRating.toFixed(1) }]
-      : [{ label: 'Avg rating', value: 'N/A' }]),
-    ...(stats
-      ? [
-          { label: 'Followers', value: stats.followerCount },
-          { label: 'Following', value: stats.followingCount },
-        ]
-      : []),
+    { label: 'Reseñas', value: currentProfile.reviewCount },
+    { label: 'Rating medio', value: currentProfile.avgRating?.toFixed(1) ?? '—' },
+    { label: 'Seguidores', value: stats?.followerCount ?? '—' },
+    { label: 'Siguiendo', value: stats?.followingCount ?? '—' },
   ];
 
   if (isEditing) {
     return (
       <div className={styles.page}>
         <section className={styles.editHeader}>
-          <p className={styles.eyebrow}>Profile settings</p>
-          <h1 className={styles.username}>Edit profile</h1>
+          <p className={styles.editEyebrow}>Preferencias del perfil</p>
+          <h1 className={styles.editTitle}>Editar perfil</h1>
         </section>
         <EditProfileForm
           profile={currentProfile}
@@ -81,106 +123,102 @@ export function UserProfilePage() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.profileHeader}>
+      <header className={styles.profileHeader}>
         <div className={styles.avatarFrame}>
           {currentProfile.avatar_url ? (
-            <img src={currentProfile.avatar_url} alt={currentProfile.username} className={styles.avatar} />
+            <img src={currentProfile.avatar_url} alt="" className={styles.avatar} />
           ) : (
-            <div className={styles.avatarPlaceholder}>{initial}</div>
+            <div className={styles.avatarPlaceholder} aria-hidden="true">{initial}</div>
           )}
         </div>
 
         <div className={styles.profileMain}>
-          <p className={styles.eyebrow}>Listener profile</p>
-          <div className={styles.titleRow}>
-            <div className={styles.identity}>
-              <h1 className={styles.username}>{currentProfile.username}</h1>
-              {currentProfile.display_name && (
-                <p className={styles.displayName}>{currentProfile.display_name}</p>
-              )}
-            </div>
-
-            <div className={styles.actionRow}>
-              {isOwnProfile ? (
-                <button type="button" onClick={() => setIsEditing(true)} className={styles.editButton}>
-                  Edit profile
-                </button>
-              ) : (
-                <>
-                  <FollowButton userId={currentProfile.id} />
-                  <button
-                    type="button"
-                    className={styles.messageButton}
-                    onClick={async () => {
-                      await messagesStore.startConversation(currentProfile.id);
-                      const conversation = useMessagesStore.getState().currentConversation;
-                      if (conversation) {
-                        navigate('/messages', { state: { conversationId: conversation.id } });
-                      }
-                    }}
-                  >
-                    Message
-                  </button>
-                </>
-              )}
-            </div>
+          <h1 className={styles.displayName}>{displayName}</h1>
+          <p className={styles.handle}>@{currentProfile.username}</p>
+          {currentProfile.bio ? <p className={styles.bio}>{currentProfile.bio}</p> : null}
+          <div className={styles.profileMeta}>
+            <span className={styles.metaItem}>
+              <CalendarIcon />
+              Se unió en {formatJoinedDate(currentProfile.created_at)}
+            </span>
           </div>
-
-          {currentProfile.bio && <p className={styles.bio}>{currentProfile.bio}</p>}
         </div>
 
-        <div className={styles.statsGrid}>
-          {profileStats.map((stat) => (
-            <div key={stat.label} className={styles.statCard}>
-              <span className={styles.statValue}>{stat.value}</span>
-              <span className={styles.statLabel}>{stat.label}</span>
-            </div>
-          ))}
+        <div className={styles.actionRow}>
+          {isOwnProfile ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsEditing(true)}
+              className={styles.settingsButton}
+              aria-label="Editar perfil"
+              title="Editar perfil"
+            >
+              <SettingsIcon />
+            </Button>
+          ) : (
+            <>
+              <FollowButton userId={currentProfile.id} />
+              <Button
+                type="button"
+                variant="secondary"
+                className={styles.messageButton}
+                onClick={async () => {
+                  await messagesStore.startConversation(currentProfile.id);
+                  const conversation = useMessagesStore.getState().currentConversation;
+                  if (conversation) {
+                    navigate('/messages', { state: { conversationId: conversation.id } });
+                  }
+                }}
+              >
+                <MessageIcon />
+                Mensaje
+              </Button>
+            </>
+          )}
         </div>
+      </header>
+
+      <section className={styles.statsGrid} aria-label="Estadísticas del perfil">
+        {profileStats.map((stat) => (
+          <Card key={stat.label} className={styles.statCard}>
+            <strong className={styles.statValue}>{stat.value}</strong>
+            <span className={styles.statLabel}>{stat.label}</span>
+          </Card>
+        ))}
       </section>
 
       <div className={styles.profileBody}>
         <SocialLinks links={currentProfile} />
 
-        <section className={styles.reviewsSection}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionEyebrow}>Recent listening notes</p>
-              <h2 className={styles.sectionTitle}>Reviews</h2>
+        <section className={styles.reviewsSection} aria-labelledby="reviewed-albums-title">
+          <header className={styles.sectionHeader}>
+            <div className={styles.sectionTitleRow}>
+              <h2 id="reviewed-albums-title">Álbumes reseñados</h2>
+              <Badge variant="neutral" numeric className={styles.reviewCount}>
+                {currentProfile.reviewCount}
+              </Badge>
             </div>
-            <span className={styles.reviewTotal}>{currentProfile.reviewCount} total</span>
-          </div>
+          </header>
 
           {currentProfile.reviews.length === 0 ? (
-            <p className={styles.empty}>No reviews yet.</p>
+            <Card className={styles.empty}>Todavía no hay álbumes reseñados.</Card>
           ) : (
-            <div className={styles.reviewGrid}>
-              {currentProfile.reviews.map((review) => {
-                const reviewDate = new Date(review.created_at).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                });
-
-                return (
-                  <article key={review.id} className={styles.reviewCard}>
-                    <img
-                      src={review.albums?.cover_url ?? 'https://placehold.co/96x96?text=No+Cover'}
-                      alt={review.albums?.title ?? 'Album'}
-                      className={styles.reviewCover}
-                    />
-                    <div className={styles.reviewInfo}>
-                      <div className={styles.reviewTopLine}>
-                        <p className={styles.reviewAlbumTitle}>{review.albums?.title ?? 'Unknown album'}</p>
-                        <span className={styles.reviewRating}>{review.rating} / 5</span>
-                      </div>
-                      <p className={styles.reviewArtist}>{review.albums?.artists?.[0]?.name ?? 'Unknown artist'}</p>
-                      <p className={styles.reviewContent}>{review.content}</p>
-                      <time className={styles.reviewDate} dateTime={review.created_at}>{reviewDate}</time>
-                    </div>
-                  </article>
-                );
-              })}
+            <div className={styles.albumGrid}>
+              {currentProfile.reviews.map((review) => (
+                <AlbumCard
+                  key={review.id}
+                  categoryLabel="Reseñado"
+                  album={{
+                    id: review.album_id,
+                    title: review.albums?.title ?? 'Álbum desconocido',
+                    artist: review.albums?.artists?.[0]?.name ?? 'Artista desconocido',
+                    coverUrl: review.albums?.cover_url,
+                    avgRating: Number(review.rating),
+                    reviewCount: 1,
+                  }}
+                />
+              ))}
             </div>
           )}
         </section>
