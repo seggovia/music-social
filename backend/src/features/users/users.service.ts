@@ -120,6 +120,7 @@ export const usersService = {
     twitter_url?: string | null;
     youtube_url?: string | null;
     bandcamp_url?: string | null;
+    theme_preference?: 'light' | 'dark';
   }) {
     const target = await usersRepository.findByUsername(username);
     if (!target) throw new AppError('User not found', 404);
@@ -133,6 +134,12 @@ export const usersService = {
       if (value && value.trim() && !/^https?:\/\//i.test(value.trim())) {
         throw new AppError(`${field} must be a valid URL starting with http(s)://`, 400);
       }
+    }
+
+    if (data.theme_preference !== undefined
+      && data.theme_preference !== 'light'
+      && data.theme_preference !== 'dark') {
+      throw new AppError('theme_preference must be light or dark', 400);
     }
 
     return usersRepository.update(requesterId, data);

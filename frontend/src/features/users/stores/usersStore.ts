@@ -124,6 +124,10 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const updated = await apiClient.put<UserProfile>(`/users/${username}`, data, authOptions());
+      const authUser = useAuthStore.getState().user;
+      if (authUser?.id === updated.id) {
+        useAuthStore.getState().patchUser(updated);
+      }
       set((state) => ({
         currentProfile: state.currentProfile ? { ...state.currentProfile, ...updated } : null,
         isLoading: false,

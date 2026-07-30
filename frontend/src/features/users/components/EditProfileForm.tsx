@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useThemeStore, type ThemePreference } from '@/shared/stores/themeStore';
 import { useUsersStore } from '../stores/usersStore';
 import type { SocialLinks, UpdateProfileInput, UserProfile } from '../types';
 import styles from './EditProfileForm.module.css';
@@ -20,10 +21,13 @@ interface Props {
 
 export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
   const { updateProfile, isLoading } = useUsersStore();
+  const setTheme = useThemeStore((state) => state.setTheme);
 
   const [displayName, setDisplayName] = useState(profile.display_name ?? '');
   const [bio, setBio] = useState(profile.bio ?? '');
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? '');
+  const originalTheme = profile.theme_preference ?? 'light';
+  const [themePreference, setThemePreference] = useState<ThemePreference>(originalTheme);
   const [links, setLinks] = useState<SocialLinks>({
     spotify_url: profile.spotify_url ?? '',
     lastfm_url: profile.lastfm_url ?? '',
@@ -35,6 +39,16 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
 
   function updateLink(key: keyof SocialLinks, value: string) {
     setLinks((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleThemeChange(theme: ThemePreference) {
+    setThemePreference(theme);
+    setTheme(theme, false);
+  }
+
+  function handleCancel() {
+    setTheme(originalTheme, false);
+    onCancel();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -49,6 +63,7 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
       twitter_url: links.twitter_url?.trim() || null,
       youtube_url: links.youtube_url?.trim() || null,
       bandcamp_url: links.bandcamp_url?.trim() || null,
+      theme_preference: themePreference,
     };
 
     try {
@@ -114,11 +129,34 @@ export function EditProfileForm({ profile, onCancel, onSaved }: Props) {
         ))}
       </div>
 
+      <h3 className={styles.sectionTitle}>Preferencias</h3>
+      <div className={styles.preferenceCard}>
+        <div className={styles.preferenceCopy}>
+          <span id="theme-preference-label" className={styles.preferenceLabel}>Tema</span>
+          <span className={styles.preferenceValue}>
+            {themePreference === 'light' ? 'Claro' : 'Oscuro'}
+          </span>
+        </div>
+        <label className={styles.switch}>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={themePreference === 'dark'}
+            onChange={(event) => handleThemeChange(event.target.checked ? 'dark' : 'light')}
+            className={styles.switchInput}
+            aria-labelledby="theme-preference-label"
+          />
+          <span className={styles.switchTrack} aria-hidden="true">
+            <span className={styles.switchThumb} />
+          </span>
+        </label>
+      </div>
+
       <div className={styles.actions}>
         <button type="submit" disabled={isLoading} className={styles.saveButton}>
           {isLoading ? 'Saving...' : 'Save profile'}
         </button>
-        <button type="button" onClick={onCancel} className={styles.cancelButton}>
+        <button type="button" onClick={handleCancel} className={styles.cancelButton}>
           Cancel
         </button>
       </div>

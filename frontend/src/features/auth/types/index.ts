@@ -4,6 +4,7 @@ export interface UserProfile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  theme_preference: 'light' | 'dark';
   created_at: string;
   updated_at: string;
 }
@@ -37,4 +38,6 @@ export interface AuthState {
   register: (values: RegisterFormValues) => Promise<void>;
   logout: () => void;
   hydrate: () => void;
+  refreshUser: () => Promise<void>;
+  patchUser: (profile: Partial<UserProfile>) => void;
 }

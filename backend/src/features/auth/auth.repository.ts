@@ -2,7 +2,7 @@ import { supabase, supabaseAuth } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
 import type { AuthResponse, LoginInput, RegisterInput, UserProfile } from './auth.types.js';
 
-const PROFILE_SELECT = 'id, username, display_name, avatar_url, bio, created_at, updated_at';
+const PROFILE_SELECT = 'id, username, display_name, avatar_url, bio, theme_preference, created_at, updated_at';
 
 export const authRepository = {
   async register(input: RegisterInput): Promise<AuthResponse> {
