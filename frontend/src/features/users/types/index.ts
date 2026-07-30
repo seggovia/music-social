@@ -9,6 +9,7 @@ export interface SocialLinks {
 
 export interface UserReview {
   id: string;
+  album_id: string;
   rating: number;
   content: string;
   created_at: string;

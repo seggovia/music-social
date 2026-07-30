@@ -1,14 +1,14 @@
-import type { CSSProperties } from 'react';
+import { Card } from '@/shared/components/ui';
 import type { SocialLinks as SocialLinksType } from '../types';
 import styles from './SocialLinks.module.css';
 
-const PLATFORMS: { key: keyof SocialLinksType; label: string; color: string; mark: string }[] = [
-  { key: 'spotify_url', label: 'Spotify', color: '#1DB954', mark: 'SP' },
-  { key: 'lastfm_url', label: 'Last.fm', color: '#D51007', mark: 'FM' },
-  { key: 'instagram_url', label: 'Instagram', color: '#E1306C', mark: 'IG' },
-  { key: 'twitter_url', label: 'Twitter / X', color: '#FFFFFF', mark: 'X' },
-  { key: 'youtube_url', label: 'YouTube', color: '#FF0000', mark: 'YT' },
-  { key: 'bandcamp_url', label: 'Bandcamp', color: '#1DA0C3', mark: 'BC' },
+const PLATFORMS: { key: keyof SocialLinksType; label: string; mark: string }[] = [
+  { key: 'spotify_url', label: 'Spotify', mark: 'SP' },
+  { key: 'lastfm_url', label: 'Last.fm', mark: 'FM' },
+  { key: 'instagram_url', label: 'Instagram', mark: 'IG' },
+  { key: 'twitter_url', label: 'Twitter / X', mark: 'X' },
+  { key: 'youtube_url', label: 'YouTube', mark: 'YT' },
+  { key: 'bandcamp_url', label: 'Bandcamp', mark: 'BC' },
 ];
 
 interface Props {
@@ -16,29 +16,27 @@ interface Props {
 }
 
 export function SocialLinks({ links }: Props) {
-  const active = PLATFORMS.filter((p) => links[p.key]);
+  const active = PLATFORMS.filter((platform) => links[platform.key]);
 
   return (
-    <section className={styles.section} aria-label="Connections">
-      <div className={styles.sectionHeader}>
-        <p className={styles.eyebrow}>Connections</p>
-        <h2>Links</h2>
-      </div>
+    <section className={styles.section} aria-labelledby="connections-title">
+      <header className={styles.sectionHeader}>
+        <h2 id="connections-title">Conexiones</h2>
+      </header>
       {active.length === 0 ? (
-        <p className={styles.empty}>No connections added yet.</p>
+        <Card className={styles.empty}>Todavía no hay enlaces sociales.</Card>
       ) : (
         <div className={styles.grid}>
-          {active.map((p) => (
+          {active.map((platform) => (
             <a
-              key={p.key}
-              href={links[p.key]!}
+              key={platform.key}
+              href={links[platform.key]!}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.badge}
-              style={{ '--platform-color': p.color } as CSSProperties}
+              className={styles.link}
             >
-              <span className={styles.iconWrap} aria-hidden="true">{p.mark}</span>
-              {p.label}
+              <span className={styles.iconWrap} aria-hidden="true">{platform.mark}</span>
+              {platform.label}
             </a>
           ))}
         </div>

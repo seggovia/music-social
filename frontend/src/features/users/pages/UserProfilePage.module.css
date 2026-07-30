@@ -1,75 +1,60 @@
 .page {
-  width: min(var(--max-width), 100%);
-  max-width: var(--max-width);
+  width: min(72rem, 100%);
   margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-16);
+  padding: var(--space-12) var(--space-6) var(--space-16);
 }
 
-.loadingHeader {
+.loadingHeader,
+.profileHeader {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
+  grid-template-columns: 128px minmax(0, 1fr) auto;
+  align-items: end;
   gap: var(--space-8);
-  align-items: center;
-  padding-bottom: var(--space-8);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .loadingCopy {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
-  overflow: hidden;
+  padding-bottom: var(--space-1);
 }
 
-.loadingCopy > * {
-  max-width: 100%;
-}
-
-.loadingStats {
+.loadingStats,
+.statsGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
-  margin-top: var(--space-2);
-}
-
-.profileHeader {
-  display: grid;
-  grid-template-columns: 136px minmax(0, 1fr);
-  gap: var(--space-8);
-  align-items: start;
-  padding: var(--space-2) 0 var(--space-8);
-  border-bottom: 1px solid var(--color-border);
+  margin-top: var(--space-8);
 }
 
 .avatarFrame {
-  width: 136px;
-  height: 136px;
-  padding: 4px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: linear-gradient(180deg, var(--color-surface-elevated), var(--color-surface));
-  box-shadow: var(--shadow-md);
+  width: 128px;
+  height: 128px;
+  overflow: hidden;
+  background: var(--card);
+  border: 4px solid var(--card);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .avatar,
 .avatarPlaceholder {
   width: 100%;
   height: 100%;
-  border-radius: var(--radius-pill);
+  border-radius: 50%;
 }
 
 .avatar {
   display: block;
   object-fit: cover;
-  background: var(--color-surface-elevated);
+  background: var(--secondary);
 }
 
 .avatarPlaceholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-surface-elevated), var(--color-surface-raised));
-  color: var(--color-text);
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-family: var(--font-display);
   font-size: var(--text-4xl);
   font-weight: 800;
@@ -79,299 +64,224 @@
   min-width: 0;
 }
 
-.eyebrow,
-.sectionEyebrow {
-  margin: 0 0 var(--space-2);
-  color: var(--color-accent);
-  font-size: var(--text-xs);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: var(--leading-caption);
-  text-transform: uppercase;
-}
-
-.titleRow {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-6);
-  align-items: flex-start;
-}
-
-.identity {
-  min-width: 0;
-}
-
-.username {
+.displayName,
+.editTitle {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3.65rem);
-  line-height: var(--leading-heading);
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
   overflow-wrap: anywhere;
 }
 
 .displayName {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+}
+
+.handle {
   margin-top: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--text-lg);
-  line-height: var(--leading-tight);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .bio {
-  max-width: 700px;
-  margin-top: var(--space-5);
-  color: var(--color-text);
-  font-size: var(--text-base);
-  line-height: var(--leading-body);
+  max-width: 680px;
+  margin-top: var(--space-4);
+  color: var(--muted-foreground);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.profileMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+}
+
+.metaItem svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .actionRow {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  flex-shrink: 0;
-  padding-top: var(--space-2);
-}
-
-.editButton,
-.messageButton {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-5);
-  font-size: var(--text-sm);
-  font-weight: 800;
-  line-height: 1;
-  transition:
-    transform var(--transition-fast),
-    border-color var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    filter var(--transition-fast);
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
 }
 
-.editButton {
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
-  color: var(--color-text-inverse);
-  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.24);
+.settingsButton {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.settingsButton svg,
+.messageButton svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .messageButton {
-  background: color-mix(in srgb, var(--color-surface-raised) 84%, transparent);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-}
-
-.editButton:hover,
-.messageButton:hover {
-  border-color: var(--color-accent);
-  box-shadow: 0 14px 34px rgba(108, 92, 231, 0.24);
-  transform: translateY(-1px);
-}
-
-.editButton:hover {
-  filter: brightness(1.05);
-}
-
-.messageButton:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-hover);
-}
-
-.editButton:active,
-.messageButton:active {
-  transform: translateY(0) scale(0.99);
-}
-
-.statsGrid {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-top: var(--space-2);
+  white-space: nowrap;
 }
 
 .statCard {
+  display: grid;
+  align-content: center;
   min-width: 0;
-  padding: var(--space-4);
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  min-height: 100px;
 }
 
 .statValue {
-  display: block;
-  color: var(--color-text);
+  color: var(--card-foreground);
   font-family: var(--font-mono);
-  font-size: var(--text-2xl);
-  font-weight: 700;
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .statLabel {
-  display: block;
   margin-top: var(--space-2);
-  color: var(--color-text-muted);
+  color: var(--muted-foreground);
   font-size: var(--text-sm);
-  font-weight: 700;
 }
 
 .profileBody {
   display: grid;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
+  gap: var(--space-12);
+  margin-top: var(--space-12);
 }
 
 .reviewsSection {
-  display: grid;
-  gap: var(--space-5);
+  min-width: 0;
 }
 
 .sectionHeader {
   display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  align-items: flex-end;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: var(--text-3xl);
-}
-
-.reviewTotal {
-  display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-raised);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  white-space: nowrap;
+  min-height: 52px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 
-.reviewGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-}
-
-.reviewCard {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: var(--space-4);
-  min-width: 0;
-  padding: var(--space-4);
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition:
-    transform var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background var(--transition-fast);
-}
-
-.reviewCard:hover {
-  background: linear-gradient(180deg, var(--color-surface-elevated), var(--color-surface-raised));
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.reviewCover {
-  width: 96px;
-  aspect-ratio: 1;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  background: var(--color-surface-elevated);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
-}
-
-.reviewInfo {
-  min-width: 0;
-}
-
-.reviewTopLine {
+.sectionTitleRow {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--space-3);
-  align-items: flex-start;
 }
 
-.reviewAlbumTitle {
-  min-width: 0;
-  color: var(--color-text);
+.sectionTitleRow h2 {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
   font-weight: 800;
-  line-height: var(--leading-tight);
-  overflow-wrap: anywhere;
 }
 
-.reviewArtist {
-  margin-top: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: var(--leading-tight);
+.reviewCount {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
 }
 
-.reviewRating {
-  flex-shrink: 0;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 34%, transparent);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  color: var(--color-accent-hover);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.reviewContent {
-  display: -webkit-box;
-  margin-top: var(--space-3);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  line-height: 1.55;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.reviewDate {
-  display: block;
-  margin-top: var(--space-3);
-  color: var(--color-text-subtle);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: var(--leading-caption);
+.albumGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
 }
 
 .empty {
-  padding: var(--space-6);
-  background: var(--color-surface);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  color: var(--color-text-muted);
+  color: var(--muted-foreground);
   text-align: center;
 }
 
 .editHeader {
   max-width: 760px;
+  margin-bottom: var(--space-8);
   padding-bottom: var(--space-6);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border);
+}
+
+.editEyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--primary);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.editTitle {
+  font-size: clamp(2.3rem, 5vw, 3.5rem);
+}
+
+@media (max-width: 1024px) {
+  .profileHeader,
+  .loadingHeader {
+    grid-template-columns: 112px minmax(0, 1fr) auto;
+    gap: var(--space-6);
+  }
+
+  .avatarFrame {
+    width: 112px;
+    height: 112px;
+  }
+
+  .albumGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
+  .profileHeader,
+  .loadingHeader {
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .actionRow {
+    grid-column: 2;
+    justify-content: flex-start;
+    padding: 0;
+  }
+
+  .statsGrid,
+  .loadingStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
   .page {
     padding: var(--space-8) var(--space-4) var(--space-12);
   }
@@ -379,6 +289,7 @@
   .profileHeader,
   .loadingHeader {
     grid-template-columns: 1fr;
+    align-items: start;
     gap: var(--space-5);
   }
 
@@ -387,101 +298,49 @@
     height: 112px;
   }
 
-  .titleRow {
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .actionRow {
-    justify-content: flex-start;
-    padding-top: 0;
-  }
-
-  .statsGrid,
-  .loadingStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .reviewGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: var(--space-6) var(--space-3) var(--space-12);
-  }
-
-  .profileHeader {
-    padding-top: 0;
-    padding-bottom: var(--space-6);
-  }
-
-  .avatarFrame {
-    width: 96px;
-    height: 96px;
-  }
-
-  .username {
-    font-size: clamp(1.85rem, 10vw, 2.75rem);
-  }
-
   .displayName {
-    font-size: var(--text-base);
+    font-size: clamp(2.35rem, 12vw, 3.25rem);
   }
 
   .actionRow {
+    grid-column: auto;
     width: 100%;
   }
 
-  .actionRow > * {
-    flex: 1 1 132px;
-    min-height: 44px;
+  .actionRow > :not(.settingsButton) {
+    flex: 1 1 auto;
   }
 
-  .editButton,
   .messageButton {
     min-height: 44px;
   }
 
-  .statsGrid,
-  .loadingStats {
+  .loadingStats,
+  .statsGrid {
     gap: var(--space-3);
+    margin-top: var(--space-6);
   }
 
   .statCard {
-    padding: var(--space-3);
+    min-height: 92px;
+    padding: var(--space-4);
   }
 
   .statValue {
-    font-size: var(--text-xl);
+    font-size: var(--text-2xl);
+  }
+
+  .profileBody {
+    gap: var(--space-10);
+    margin-top: var(--space-10);
   }
 
   .sectionHeader {
-    align-items: flex-start;
-    flex-direction: column;
+    margin-bottom: var(--space-4);
   }
 
-  .reviewCard {
-    grid-template-columns: 68px minmax(0, 1fr);
+  .albumGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
-    padding: var(--space-3);
-  }
-
-  .reviewCover {
-    width: 68px;
-  }
-
-  .reviewTopLine {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .reviewRating {
-    align-self: flex-start;
-  }
-
-  .editHeader {
-    padding-bottom: var(--space-4);
   }
 }

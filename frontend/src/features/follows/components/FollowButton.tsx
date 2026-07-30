@@ -38,7 +38,7 @@ export function FollowButton({ userId }: Props) {
       disabled={isLoading}
       className={stats.isFollowing ? `${styles.button} ${styles.buttonFollowing}` : styles.button}
     >
-      {isLoading ? '...' : stats.isFollowing ? 'Following' : 'Follow'}
+      {isLoading ? '…' : stats.isFollowing ? 'Siguiendo' : 'Seguir'}
     </button>
   );
 }
