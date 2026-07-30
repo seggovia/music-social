@@ -1,0 +1,106 @@
+.overlay {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--foreground) 28%, transparent);
+  backdrop-filter: blur(5px);
+  animation: overlay-enter var(--duration-base) var(--ease-out);
+}
+
+:global(:root[data-theme='dark']) .overlay {
+  background: color-mix(in srgb, var(--background) 68%, transparent);
+}
+
+.dialog {
+  width: min(100%, 28rem);
+  animation: dialog-enter var(--duration-base) var(--ease-out);
+}
+
+.card {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--border) 72%, var(--foreground));
+  box-shadow: var(--shadow-lg);
+}
+
+.content {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.title {
+  color: var(--card-foreground);
+  font-size: var(--text-xl);
+}
+
+.description {
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.destructiveButton {
+  background: var(--destructive);
+  border-color: var(--destructive);
+  color: var(--primary-foreground);
+}
+
+.destructiveButton:hover {
+  color: var(--primary-foreground);
+}
+
+@keyframes overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    padding: var(--space-3);
+  }
+
+  .dialog {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .dialog {
+    animation: none;
+  }
+}

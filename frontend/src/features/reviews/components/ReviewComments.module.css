@@ -26,8 +26,6 @@
 
 .toggle:focus-visible,
 .deleteButton:focus-visible,
-.cancelButton:focus-visible,
-.confirmButton:focus-visible,
 .retryButton:focus-visible,
 .loadMoreButton:focus-visible,
 .submitButton:focus-visible {
@@ -190,19 +188,6 @@
   color: var(--destructive);
 }
 
-.confirmDelete {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  color: var(--muted-foreground);
-  font-size: var(--text-xs);
-  font-weight: 700;
-}
-
-.cancelButton,
-.confirmButton,
 .retryButton,
 .loadMoreButton,
 .submitButton {
@@ -214,13 +199,6 @@
     opacity var(--transition-fast);
 }
 
-.cancelButton,
-.confirmButton {
-  min-height: 32px;
-  padding: var(--space-1) var(--space-3);
-}
-
-.cancelButton,
 .retryButton,
 .loadMoreButton {
   background: var(--card);
@@ -228,13 +206,6 @@
   color: var(--card-foreground);
 }
 
-.confirmButton {
-  background: color-mix(in srgb, var(--destructive) 10%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--destructive) 44%, var(--border));
-  color: var(--destructive);
-}
-
-.cancelButton:hover:not(:disabled),
 .retryButton:hover,
 .loadMoreButton:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary) 68%, var(--border));
@@ -343,9 +314,7 @@
 }
 
 .submitButton:disabled,
-.loadMoreButton:disabled,
-.cancelButton:disabled,
-.confirmButton:disabled {
+.loadMoreButton:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -392,11 +361,6 @@
   .deleteButton {
     min-height: 40px;
     padding-inline: var(--space-2);
-  }
-
-  .cancelButton,
-  .confirmButton {
-    min-height: 36px;
   }
 
   .retryButton,
