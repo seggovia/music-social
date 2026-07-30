@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
+import { Button, Card } from '@/shared/components/ui';
 import { useMessagesStore } from '../stores/messagesStore';
 import type { Message, MessageDeleteMode } from '../types';
 import { useAuthStore } from '@/features/auth/stores/authStore';
@@ -57,6 +58,15 @@ function getMessageActions(message: Message, userId: string | undefined, now: nu
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), Math.max(min, max));
+}
+
+function formatMessageTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export function MessagesPage() {
@@ -461,14 +471,13 @@ export function MessagesPage() {
     : null;
 
   return (
-    <div className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}>
+    <Card
+      padding="none"
+      className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}
+    >
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <p className={styles.sidebarEyebrow}>Direct messages</p>
-          <div className={styles.sidebarTitleRow}>
-            <h1 className={styles.sidebarTitle}>Messages</h1>
-            <span className={styles.sidebarCount}>{conversations.length}</span>
-          </div>
+          <h1 className={styles.sidebarTitle}>Mensajes</h1>
         </div>
         <div className={styles.conversationsList}>
           {conversations.map((conversation) => {
@@ -478,11 +487,6 @@ export function MessagesPage() {
                 : conversation.user_one
               : null;
             const isActive = currentConversation?.id === conversation.id;
-            const lastMessage = conversation.user_one && conversation.user_two
-              ? conversation.user_one.id === me?.id
-                ? conversation.user_two.username
-                : conversation.user_one.username
-              : 'Conversation';
 
             return (
               <button
@@ -503,20 +507,21 @@ export function MessagesPage() {
                     <div className={styles.conversationContent}>
                       <div className={styles.conversationTopLine}>
                         <div className={styles.username}>{participant.username}</div>
-                        {isActive ? <span className={styles.activeDot} aria-label="Active conversation" /> : null}
                       </div>
-                      <div className={styles.lastMessage}>{lastMessage}</div>
+                      <div className={styles.lastMessage}>@{participant.username}</div>
                     </div>
                   </>
                 ) : (
                   <div className={styles.conversationContent}>
-                    <div className={styles.username}>Conversation</div>
-                    <div className={styles.lastMessage}>{lastMessage}</div>
+                    <div className={styles.username}>Conversación</div>
                   </div>
                 )}
               </button>
             );
           })}
+          {conversations.length === 0 && !isLoading ? (
+            <p className={styles.emptyConversations}>Todavía no tienes conversaciones.</p>
+          ) : null}
         </div>
       </aside>
 
@@ -524,15 +529,15 @@ export function MessagesPage() {
         {currentConversation && otherUser ? (
           <>
             <div className={styles.panelHeader}>
-              <button
-                type="button"
+              <Button
                 className={styles.mobileBackButton}
+                variant="secondary"
                 onClick={handleBackToConversations}
                 aria-label="Volver a conversaciones"
               >
                 <span aria-hidden="true">←</span>
                 <span>Volver</span>
-              </button>
+              </Button>
               <div className={styles.panelAvatarWrap}>
                 <img
                   src={otherUser.avatar_url ?? 'https://placehold.co/40x40?text=U'}
@@ -540,19 +545,24 @@ export function MessagesPage() {
                   className={styles.avatar}
                 />
               </div>
-              <div>
-                <p className={styles.panelEyebrow}>Conversation with</p>
+              <div className={styles.panelIdentity}>
                 <div className={styles.panelHeaderName}>{otherUser.username}</div>
+                <span className={styles.panelHandle}>@{otherUser.username}</span>
               </div>
             </div>
 
             {pinnedMessages.length > 0 && (
-              <section className={styles.pinnedBar} aria-label="Pinned messages">
+              <section className={styles.pinnedBar} aria-label="Mensajes fijados">
                 <div className={styles.pinnedHeader}>
-                  <span className={styles.pinnedIcon} aria-hidden="true">Pin</span>
+                  <span className={styles.pinnedIcon} aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="m9 3 6 6-2 2 4 4-2 2-4-4-2 2-6-6 2-2 2 2 4-4-2-2Z" />
+                      <path d="m9 15-5 5" />
+                    </svg>
+                  </span>
                   <div>
-                    <p className={styles.pinnedEyebrow}>Pinned</p>
-                    <h2 className={styles.pinnedTitle}>Saved in this chat</h2>
+                    <p className={styles.pinnedEyebrow}>Fijados</p>
+                    <h2 className={styles.pinnedTitle}>Guardados en este chat</h2>
                   </div>
                 </div>
                 <div className={styles.pinnedList}>
@@ -576,14 +586,14 @@ export function MessagesPage() {
               }}
             >
               {messagesHasMore && (
-                <button
-                  type="button"
+                <Button
                   className={styles.loadOlderButton}
+                  variant="secondary"
                   onClick={handleLoadOlderMessages}
                   disabled={isLoadingMore}
                 >
-                  {isLoadingMore ? 'Loading...' : 'Load older messages'}
-                </button>
+                  {isLoadingMore ? 'Cargando…' : 'Cargar mensajes anteriores'}
+                </Button>
               )}
               {displayMessages.map((message) => {
                 const actions = getMessageActions(message, me?.id, now);
@@ -624,8 +634,8 @@ export function MessagesPage() {
                           <>
                             <div className={styles.messageText}>{isDeletedForAll ? 'Mensaje anulado' : message.body}</div>
                             <div className={styles.messageMeta}>
-                              {new Date(message.created_at).toLocaleTimeString()}
-                              {message.edited_at ? ' - edited' : ''}
+                              {formatMessageTime(message.created_at)}
+                              {message.edited_at ? ' · editado' : ''}
                             </div>
                           </>
                         )}
@@ -640,7 +650,7 @@ export function MessagesPage() {
                           aria-expanded={isMenuOpen}
                           aria-haspopup="menu"
                         >
-                          ...
+                          ⋯
                         </button>
                       )}
 
@@ -691,17 +701,27 @@ export function MessagesPage() {
                 value={inputText}
                 onChange={(event) => setInputText(event.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Write a message"
+                placeholder="Escribe un mensaje"
+                aria-label="Mensaje"
               />
-              <button type="button" className={styles.sendButton} onClick={() => void handleSend()}>
-                Send
-              </button>
+              <Button
+                type="button"
+                className={styles.sendButton}
+                onClick={() => void handleSend()}
+                aria-label="Enviar mensaje"
+                title="Enviar"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m4 4 17 8-17 8 3-8-3-8Z" />
+                  <path d="M7 12h14" />
+                </svg>
+              </Button>
             </div>
           </>
         ) : (
-          <div className={styles.emptyState}>Select a conversation</div>
+          <div className={styles.emptyState}>Selecciona una conversación</div>
         )}
       </section>
-    </div>
+    </Card>
   );
 }
