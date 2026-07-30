@@ -1,148 +1,100 @@
 .page {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
-  height: calc(100vh - 72px);
-  height: calc(100dvh - 72px);
+  grid-template-columns: 320px minmax(0, 1fr);
+  width: min(72rem, calc(100% - var(--space-8)));
+  height: calc(100vh - 96px);
+  height: calc(100dvh - 96px);
   min-height: 0;
-  width: 100%;
-  background: var(--color-bg);
-  color: var(--color-text);
+  margin: var(--space-4) auto;
   overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  color: var(--card-foreground);
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
-  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg));
-  border-right: 1px solid var(--color-border);
+  background: var(--card);
+  border-right: 1px solid var(--border);
 }
 
 .sidebarHeader {
-  padding: var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.sidebarEyebrow,
-.panelEyebrow,
-.pinnedEyebrow {
-  margin: 0 0 var(--space-1);
-  color: var(--color-accent);
-  font-size: var(--text-xs);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: var(--leading-caption);
-  text-transform: uppercase;
-}
-
-.sidebarTitleRow {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  min-height: 76px;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
 }
 
 .sidebarTitle {
   margin: 0;
-  font-size: var(--text-3xl);
-}
-
-.sidebarCount {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-raised);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
   font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
 .conversationsList {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--space-3);
+  overscroll-behavior: contain;
+  padding: var(--space-2);
 }
 
 .conversationItem {
-  position: relative;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: 76px;
-  align-items: center;
+  min-height: 68px;
   padding: var(--space-3);
+  background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  background: transparent;
   color: inherit;
   text-align: left;
   transition:
-    transform var(--transition-fast),
-    border-color var(--transition-fast),
     background var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.conversationItem::before {
-  position: absolute;
-  top: var(--space-3);
-  bottom: var(--space-3);
-  left: 0;
-  width: 3px;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  content: '';
+    border-color var(--transition-fast);
 }
 
 .conversationItem:hover {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--secondary) 72%, transparent);
+  border-color: var(--border);
 }
 
-.active {
-  background: linear-gradient(180deg, var(--color-surface-elevated), var(--color-surface-raised));
-  border-color: color-mix(in srgb, var(--color-accent) 42%, transparent);
-  box-shadow: var(--shadow-sm);
-}
-
-.active::before {
-  background: var(--color-accent);
+.conversationItem.active,
+.conversationItem.active:hover {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
 }
 
 .conversationAvatarWrap,
 .panelAvatarWrap {
-  width: 48px;
-  height: 48px;
-  padding: 2px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-elevated);
-}
-
-.panelAvatarWrap {
   width: 44px;
   height: 44px;
+  overflow: hidden;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 50%;
 }
 
 .avatar {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: var(--radius-pill);
   object-fit: cover;
-  background: var(--color-surface-raised);
+  background: var(--secondary);
+  border-radius: 50%;
 }
 
 .conversationContent {
@@ -151,51 +103,47 @@
 
 .conversationTopLine {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .username {
   min-width: 0;
-  color: var(--color-text);
-  font-size: var(--text-base);
-  font-weight: 800;
-  line-height: var(--leading-tight);
   overflow: hidden;
+  color: var(--foreground);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: var(--leading-tight);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.activeDot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  box-shadow: 0 0 0 4px var(--color-accent-soft);
-  flex-shrink: 0;
 }
 
 .lastMessage {
   margin-top: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: var(--leading-tight);
   overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.emptyConversations {
+  padding: var(--space-8) var(--space-4);
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  text-align: center;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-soft) 78%, transparent), transparent 32%),
-    var(--color-bg);
+  background: var(--card);
 }
 
 .panelHeader {
@@ -204,22 +152,38 @@
   align-items: center;
   gap: var(--space-3);
   min-height: 76px;
-  padding: var(--space-4) var(--space-6);
-  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
 }
 
 .mobileBackButton {
   display: none;
 }
 
+.panelIdentity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .panelHeaderName {
   min-width: 0;
-  color: var(--color-text);
-  font-size: var(--text-lg);
+  overflow: hidden;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
   font-weight: 800;
   line-height: var(--leading-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panelHandle {
   overflow: hidden;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -227,66 +191,80 @@
 .pinnedBar {
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  align-items: center;
   gap: var(--space-4);
-  align-items: stretch;
-  padding: var(--space-4) var(--space-6);
-  background: color-mix(in srgb, var(--color-surface-raised) 76%, transparent);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--accent) 62%, var(--card));
+  border-bottom: 1px solid var(--border);
 }
 
 .pinnedHeader {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-width: 0;
 }
 
 .pinnedIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 34%, transparent);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  color: var(--color-accent-hover);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  background: var(--primary);
+  border-radius: 50%;
+  color: var(--primary-foreground);
+}
+
+.pinnedIcon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.pinnedEyebrow {
+  margin: 0 0 2px;
+  color: var(--accent-foreground);
+  font-size: 0.65rem;
   font-weight: 800;
-  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .pinnedTitle {
   margin: 0;
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 800;
-  line-height: var(--leading-tight);
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pinnedList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .pinnedItem {
   min-width: 0;
-  padding: var(--space-3);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  line-height: 1.45;
   overflow: hidden;
+  padding: var(--space-2) var(--space-3);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
-  box-shadow: var(--shadow-sm);
 }
 
 .messagesArea {
@@ -297,51 +275,24 @@
   min-height: 0;
   overflow-anchor: none;
   overflow-y: auto;
-  padding: var(--space-6);
+  overscroll-behavior: contain;
+  padding: var(--space-5);
+  background: color-mix(in srgb, var(--secondary) 72%, transparent);
 }
 
 .loadOlderButton {
   align-self: center;
-  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  box-shadow: var(--shadow-sm);
-  transition:
-    transform var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    background var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.loadOlderButton:hover:not(:disabled) {
-  background: var(--color-surface-elevated);
-  border-color: var(--color-accent);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.loadOlderButton:active:not(:disabled) {
-  transform: translateY(0) scale(0.99);
-}
-
-.loadOlderButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  min-height: 36px;
+  font-size: var(--text-xs);
 }
 
 .emptyState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--color-text-muted);
-  font-size: var(--text-lg);
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: var(--space-8);
+  color: var(--muted-foreground);
+  text-align: center;
 }
 
 .messageRow {
@@ -356,52 +307,51 @@
 .messageWrapper {
   position: relative;
   display: flex;
-  max-width: min(68%, 720px);
+  max-width: min(72%, 680px);
 }
 
 .messageBubble {
   min-width: 0;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  line-height: 1.45;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  line-height: 1.5;
 }
 
 .ownBubble {
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  border-color: color-mix(in srgb, var(--color-accent) 78%, white);
-  color: var(--color-text-inverse);
+  background: var(--primary);
+  border-color: var(--primary);
   border-bottom-right-radius: var(--radius-sm);
+  color: var(--primary-foreground);
 }
 
 .otherBubble {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
-  color: var(--color-text);
+  background: var(--card);
+  border-color: var(--border);
   border-bottom-left-radius: var(--radius-sm);
+  color: var(--card-foreground);
 }
 
 .deletedBubble {
-  background: color-mix(in srgb, var(--color-surface-raised) 72%, transparent);
-  border-color: var(--color-border);
-  color: var(--color-text-subtle);
+  background: color-mix(in srgb, var(--muted) 72%, transparent);
+  border-color: var(--border);
+  color: var(--muted-foreground);
   font-style: italic;
-  box-shadow: none;
 }
 
 .messageText {
   color: inherit;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 
 .messageMeta {
   margin-top: var(--space-2);
-  color: color-mix(in srgb, currentColor 76%, transparent);
+  color: color-mix(in srgb, currentColor 72%, transparent);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
   line-height: var(--leading-caption);
 }
 
@@ -416,120 +366,98 @@
   width: 100%;
   min-height: 82px;
   resize: vertical;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   padding: var(--space-3);
-  background: var(--color-surface-raised);
-  color: var(--color-text);
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
   font: inherit;
   transition:
     border-color var(--transition-fast),
-    background var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
-.editTextarea:hover {
-  border-color: var(--color-border-hover);
-}
-
 .editTextarea:focus {
+  border-color: color-mix(in srgb, var(--ring) 58%, var(--border));
   outline: none;
-  background: var(--color-surface-elevated);
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 16%, transparent);
 }
 
 .editActions {
   display: flex;
-  gap: var(--space-2);
   justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .editButton,
 .editButtonSecondary {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  min-height: 34px;
   padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
   font-weight: 700;
   transition:
-    transform var(--transition-fast),
     border-color var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    filter var(--transition-fast);
+    opacity var(--transition-fast);
 }
 
 .editButton {
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  border-color: color-mix(in srgb, var(--color-accent) 84%, white);
-  color: var(--color-text-inverse);
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.22);
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-foreground);
 }
 
 .editButtonSecondary {
-  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
-  color: var(--color-text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--card-foreground);
 }
 
 .editButton:hover,
 .editButtonSecondary:hover {
-  transform: translateY(-1px);
-}
-
-.editButton:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 12px 28px rgba(108, 92, 231, 0.3);
+  opacity: 0.82;
 }
 
 .editButtonSecondary:hover {
-  background: var(--color-surface-elevated);
-  border-color: var(--color-border-hover);
-}
-
-.editButton:active,
-.editButtonSecondary:active {
-  transform: translateY(0) scale(0.99);
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--border));
 }
 
 .menuButton {
   position: absolute;
   top: 0;
-  right: -34px;
+  right: -38px;
   display: grid;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  width: 30px;
-  height: 30px;
   padding: 0;
-  background: color-mix(in srgb, var(--color-surface-raised) 82%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  color: var(--color-text-muted);
-  font-size: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted-foreground);
+  font-size: var(--text-xl);
+  line-height: 1;
   opacity: 0;
   transition:
-    opacity var(--transition-fast),
-    transform var(--transition-fast),
     border-color var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
-.menuButton:hover {
-  background: var(--color-surface-elevated);
-  border-color: var(--color-border-hover);
-  color: var(--color-text);
-  transform: translateY(-1px);
+.menuButton:hover,
+.menuButton:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 52%, var(--border));
+  color: var(--foreground);
 }
 
 .menuButtonLeft {
   right: auto;
-  left: -34px;
+  left: -38px;
 }
 
 .messageWrapper:hover .menuButton,
-.menuButton:focus-visible {
+.menuButton:focus-visible,
+.menuButton[aria-expanded='true'] {
   opacity: 1;
 }
 
@@ -541,9 +469,10 @@
   max-height: calc(100dvh - 16px);
   overflow-y: auto;
   padding: var(--space-1);
-  background: var(--color-surface-overlay);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  color: var(--card-foreground);
   box-shadow: var(--shadow-lg);
 }
 
@@ -553,97 +482,95 @@
   width: 100%;
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  background: none;
+  background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
-  text-align: left;
-  color: var(--color-text);
+  border-radius: var(--radius-md);
+  color: var(--card-foreground);
   font-size: var(--text-sm);
   font-weight: 600;
+  text-align: left;
   white-space: nowrap;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .contextMenuItem:hover {
-  background: var(--color-surface-elevated);
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 .contextMenuItemDanger {
-  color: var(--color-error);
+  color: var(--destructive);
+}
+
+.contextMenuItemDanger:hover {
+  background: color-mix(in srgb, var(--destructive) 10%, transparent);
+  color: var(--destructive);
 }
 
 .inputArea {
   display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-3);
   width: 100%;
   min-width: 0;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  background: var(--card);
+  border-top: 1px solid var(--border);
 }
 
 .textarea {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: 48px;
-  max-height: 140px;
+  min-height: 44px;
+  max-height: 120px;
   resize: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-raised);
-  color: var(--color-text);
+  padding: 0.7rem var(--space-4);
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--foreground);
   font: inherit;
+  line-height: 1.4;
   transition:
     border-color var(--transition-fast),
-    background var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
-.textarea:hover {
-  border-color: var(--color-border-hover);
+.textarea::placeholder {
+  color: var(--muted-foreground);
 }
 
 .textarea:focus {
+  border-color: color-mix(in srgb, var(--ring) 58%, var(--border));
   outline: none;
-  background: var(--color-surface-elevated);
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 16%, transparent);
 }
 
 .sendButton {
-  flex: 0 0 auto;
-  min-width: 92px;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 84%, white);
-  border-radius: var(--radius-sm);
-  padding: 0 var(--space-5);
-  background: linear-gradient(180deg, var(--color-accent-hover), var(--color-accent));
-  color: var(--color-text-inverse);
-  font-weight: 800;
-  box-shadow: 0 10px 24px rgba(108, 92, 231, 0.24);
-  transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast),
-    filter var(--transition-fast);
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
 }
 
-.sendButton:hover {
-  box-shadow: 0 14px 34px rgba(108, 92, 231, 0.34);
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-.sendButton:active {
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.22);
-  transform: translateY(0) scale(0.99);
+.sendButton svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 @media (max-width: 1024px) {
   .page {
-    grid-template-columns: 300px minmax(0, 1fr);
-    height: calc(100vh - 120px);
-    height: calc(100dvh - 120px);
+    width: calc(100% - var(--space-6));
   }
 
   .pinnedBar {
@@ -662,10 +589,12 @@
 @media (max-width: 768px) {
   .page {
     display: block;
-    height: calc(100vh - 67px);
-    height: calc(100dvh - 67px);
-    min-height: 0;
-    overflow: hidden;
+    width: 100%;
+    height: calc(100vh - 64px);
+    height: calc(100dvh - 64px);
+    margin: 0;
+    border: 0;
+    border-radius: 0;
   }
 
   .sidebar,
@@ -693,7 +622,8 @@
   }
 
   .sidebarHeader {
-    padding: var(--space-5) var(--space-4);
+    min-height: 68px;
+    padding-inline: var(--space-4);
   }
 
   .conversationsList {
@@ -701,39 +631,19 @@
   }
 
   .conversationItem {
-    min-height: 72px;
+    min-height: 68px;
   }
 
   .panelHeader {
-    flex: 0 0 auto;
     min-height: 68px;
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-4);
   }
 
   .mobileBackButton {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-1);
-    min-width: 76px;
-    min-height: 44px;
-    padding: 0 var(--space-3);
-    background: color-mix(in srgb, var(--color-surface-raised) 84%, transparent);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    color: var(--color-text);
-    font-size: var(--text-sm);
-    font-weight: 800;
-  }
-
-  .mobileBackButton:hover,
-  .mobileBackButton:focus-visible {
-    background: var(--color-surface-elevated);
-    border-color: var(--color-border-hover);
-  }
-
-  .panelHeader > :last-child {
     min-width: 0;
+    min-height: 40px;
+    padding: var(--space-2) var(--space-3);
   }
 
   .messagesArea {
@@ -741,7 +651,7 @@
   }
 
   .messageWrapper {
-    max-width: 86%;
+    max-width: calc(100% - 48px);
   }
 }
 
@@ -754,16 +664,11 @@
     padding-left: var(--space-3);
   }
 
-  .sidebarTitle {
-    font-size: var(--text-2xl);
-  }
-
   .panelHeader {
     gap: var(--space-2);
   }
 
   .mobileBackButton {
-    min-width: 0;
     padding-inline: var(--space-2);
   }
 
@@ -774,8 +679,8 @@
 
   .pinnedBar {
     gap: var(--space-2);
-    padding-top: var(--space-3);
-    padding-bottom: var(--space-3);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
   }
 
   .pinnedList {
@@ -792,7 +697,7 @@
   }
 
   .messageWrapper {
-    max-width: calc(100% - 40px);
+    max-width: calc(100% - 42px);
   }
 
   .messageBubble {
@@ -817,27 +722,23 @@
     max-width: calc(100vw - var(--space-6));
   }
 
-  .contextMenuItem {
-    min-height: 44px;
-  }
-
   .inputArea {
     align-items: flex-end;
     gap: var(--space-2);
-    padding-top: var(--space-3);
-    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    padding-top: var(--space-2);
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
   }
 
   .textarea {
-    min-width: 0;
-    min-height: 48px;
-    padding: var(--space-3);
+    min-height: 44px;
+    padding: 0.7rem var(--space-3);
   }
 
   .sendButton {
-    min-width: 72px;
-    min-height: 48px;
-    padding-inline: var(--space-3);
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .editForm {
