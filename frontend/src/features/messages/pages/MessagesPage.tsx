@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { Button, Card } from '@/shared/components/ui';
 import { useMessagesStore } from '../stores/messagesStore';
 import type { Message, MessageDeleteMode } from '../types';
@@ -34,6 +35,11 @@ interface ScrollAnchor {
   scrollHeight: number;
   scrollTop: number;
   messageCount: number;
+}
+
+interface PendingMessageDelete {
+  message: Message;
+  mode: MessageDeleteMode;
 }
 
 function getMessageAgeMs(message: Message, now: number) {
@@ -97,6 +103,8 @@ export function MessagesPage() {
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
+  const [pendingDelete, setPendingDelete] = useState<PendingMessageDelete | null>(null);
+  const [isDeletingMessage, setIsDeletingMessage] = useState(false);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
   const pendingInitialScrollRef = useRef<string | null>(null);
   const olderScrollAnchorRef = useRef<ScrollAnchor | null>(null);
@@ -378,14 +386,17 @@ export function MessagesPage() {
     }
   };
 
-  const handleDelete = async (message: Message, mode: MessageDeleteMode) => {
-    if (!currentConversation) return;
+  const requestDelete = (message: Message, mode: MessageDeleteMode) => {
+    setActiveMenuMessageId(null);
+    setContextMenuPosition(null);
+    setPendingDelete({ message, mode });
+  };
 
-    const confirmationMessage = mode === 'sender'
-      ? '¿Anular envío para ti? El mensaje se ocultará de tu conversación.'
-      : '¿Anular envío para ambos? Esta acción no se puede deshacer.';
+  const handleConfirmDelete = async () => {
+    if (!currentConversation || !pendingDelete || isDeletingMessage) return;
 
-    if (!window.confirm(confirmationMessage)) return;
+    const { message, mode } = pendingDelete;
+    setIsDeletingMessage(true);
 
     try {
       const updatedMessage = await deleteMessage(currentConversation.id, message.id, mode);
@@ -398,8 +409,11 @@ export function MessagesPage() {
       }
       setActiveMenuMessageId(null);
       setContextMenuPosition(null);
+      setPendingDelete(null);
     } catch {
       // The store already reports the API error.
+    } finally {
+      setIsDeletingMessage(false);
     }
   };
 
@@ -471,10 +485,11 @@ export function MessagesPage() {
     : null;
 
   return (
-    <Card
-      padding="none"
-      className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}
-    >
+    <>
+      <Card
+        padding="none"
+        className={`${styles.page} ${mobileView === 'chat' ? styles.mobileChatOpen : styles.mobileListOpen}`}
+      >
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h1 className={styles.sidebarTitle}>Mensajes</h1>
@@ -674,12 +689,12 @@ export function MessagesPage() {
                                 </button>
                               )}
                               {canDeleteForMe && (
-                                <button type="button" role="menuitem" className={styles.contextMenuItem} onClick={() => void handleDelete(message, 'sender')}>
+                                <button type="button" role="menuitem" className={styles.contextMenuItem} onClick={() => requestDelete(message, 'sender')}>
                                   Anular envío para mí
                                 </button>
                               )}
                               {canDeleteForAll && (
-                                <button type="button" role="menuitem" className={`${styles.contextMenuItem} ${styles.contextMenuItemDanger}`} onClick={() => void handleDelete(message, 'all')}>
+                                <button type="button" role="menuitem" className={`${styles.contextMenuItem} ${styles.contextMenuItemDanger}`} onClick={() => requestDelete(message, 'all')}>
                                   Anular envío para ambos
                                 </button>
                               )}
@@ -722,6 +737,22 @@ export function MessagesPage() {
           <div className={styles.emptyState}>Selecciona una conversación</div>
         )}
       </section>
-    </Card>
+      </Card>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete?.mode === 'all'
+          ? '¿Anular envío para ambos?'
+          : '¿Anular envío para ti?'}
+        description={pendingDelete?.mode === 'all'
+          ? 'Esta acción no se puede deshacer y el mensaje dejará de estar visible para ambas personas.'
+          : 'El mensaje se ocultará de tu conversación.'}
+        confirmLabel={pendingDelete?.mode === 'all' ? 'Anular para ambos' : 'Anular para mí'}
+        tone="destructive"
+        isConfirming={isDeletingMessage}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </>
   );
 }

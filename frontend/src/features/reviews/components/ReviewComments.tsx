@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { ROUTES } from '@/shared/lib/constants';
 import {
   EMPTY_BUCKET,
@@ -68,7 +69,8 @@ export function ReviewComments({ reviewId, initialCount = 0 }: ReviewCommentsPro
   }
 
   return (
-    <section className={styles.comments}>
+    <>
+      <section className={styles.comments}>
       <button
         type="button"
         className={styles.toggle}
@@ -126,35 +128,14 @@ export function ReviewComments({ reviewId, initialCount = 0 }: ReviewCommentsPro
                       <p className={styles.content}>{comment.content}</p>
 
                       {isOwner ? (
-                        confirmingDeleteId === comment.id ? (
-                          <div className={styles.confirmDelete} role="group" aria-label="Confirmar borrado">
-                            <span>¿Borrar comentario?</span>
-                            <button
-                              type="button"
-                              className={styles.cancelButton}
-                              onClick={() => setConfirmingDeleteId(null)}
-                              disabled={isDeleting}
-                            >
-                              Cancelar
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.confirmButton}
-                              onClick={() => void handleDelete(comment.id)}
-                              disabled={isDeleting}
-                            >
-                              {isDeleting ? 'Borrando…' : 'Sí, borrar'}
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className={styles.deleteButton}
-                            onClick={() => setConfirmingDeleteId(comment.id)}
-                          >
-                            Borrar
-                          </button>
-                        )
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={() => setConfirmingDeleteId(comment.id)}
+                          disabled={isDeleting}
+                        >
+                          Borrar
+                        </button>
                       ) : null}
                     </div>
                   </article>
@@ -208,6 +189,21 @@ export function ReviewComments({ reviewId, initialCount = 0 }: ReviewCommentsPro
           )}
         </div>
       ) : null}
-    </section>
+      </section>
+
+      <ConfirmDialog
+        open={confirmingDeleteId !== null}
+        title="¿Borrar comentario?"
+        description="Esta acción eliminará tu comentario de forma permanente y no se puede deshacer."
+        confirmLabel="Sí, borrar"
+        tone="destructive"
+        isConfirming={confirmingDeleteId !== null
+          && bucket.deletingIds.includes(confirmingDeleteId)}
+        onConfirm={() => confirmingDeleteId
+          ? handleDelete(confirmingDeleteId)
+          : undefined}
+        onCancel={() => setConfirmingDeleteId(null)}
+      />
+    </>
   );
 }
