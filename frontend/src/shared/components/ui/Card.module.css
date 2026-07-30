@@ -1,0 +1,14 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  color: var(--card-foreground);
+}
+
+.defaultPadding {
+  padding: var(--space-5);
+}
+
+.noPadding {
+  padding: 0;
+}
