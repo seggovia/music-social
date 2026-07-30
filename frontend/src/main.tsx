@@ -7,6 +7,7 @@ import { SESSION_EXPIRED_EVENT } from './shared/lib/sessionEvents';
 import './styles/globals.css';
 
 useAuthStore.getState().hydrate();
+void useAuthStore.getState().refreshUser();
 
 if (typeof window !== 'undefined') {
   window.addEventListener(SESSION_EXPIRED_EVENT, () => {

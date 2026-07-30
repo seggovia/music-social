@@ -12,7 +12,7 @@ export const usersRepository = {
   async findByUsername(username: string) {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
+      .select('id, username, display_name, avatar_url, bio, theme_preference, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
       .eq('username', username)
       .maybeSingle();
 
@@ -23,7 +23,7 @@ export const usersRepository = {
   async findById(id: string) {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
+      .select('id, username, display_name, avatar_url, bio, theme_preference, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
       .eq('id', id)
       .maybeSingle();
 
@@ -129,12 +129,13 @@ export const usersRepository = {
     twitter_url?: string | null;
     youtube_url?: string | null;
     bandcamp_url?: string | null;
+    theme_preference?: 'light' | 'dark';
   }) {
     const { data: updated, error } = await supabase
       .from('users')
       .update(data)
       .eq('id', userId)
-      .select('id, username, display_name, avatar_url, bio, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
+      .select('id, username, display_name, avatar_url, bio, theme_preference, created_at, spotify_url, lastfm_url, instagram_url, twitter_url, youtube_url, bandcamp_url')
       .single();
 
     if (error) throw new AppError('Failed to update profile', 500, error);
