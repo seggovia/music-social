@@ -120,9 +120,13 @@ export function Layout() {
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <nav className={styles.nav}>
+        <nav className={styles.nav} aria-label="Primary navigation">
           <Link to={ROUTES.HOME} className={styles.brand}>
-            <span className={styles.brandMark}>ms</span>
+            <span className={styles.brandMark} aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M9 17.5A3.5 3.5 0 1 1 6.5 14.15V6.8L17.5 4v10.5a3.5 3.5 0 1 1-2-3.15V7.2L9 8.85v8.65Z" />
+              </svg>
+            </span>
             <span className={styles.brandText}>music<span>social</span></span>
           </Link>
 
@@ -213,36 +217,45 @@ export function Layout() {
 
             <div className={styles.authActions}>
               {user ? (
-                <div className={styles.userMenu} ref={menuRef}>
-                  <button
-                    type="button"
-                    className={styles.userMenuTrigger}
-                    onClick={() => setMenuOpen((open) => !open)}
-                    aria-expanded={menuOpen}
-                  >
-                    {user.avatar_url ? (
-                      <img src={user.avatar_url} alt="" className={styles.userAvatar} />
-                    ) : (
-                      <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
-                    )}
-                    <span className={styles.userName}>{user.username}</span>
-                    <span className={styles.userChevron} aria-hidden="true">v</span>
+                <>
+                  <button type="button" className={styles.notificationButton} aria-label="Notifications">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />
+                    </svg>
                   </button>
-                  {menuOpen && (
-                    <div className={styles.dropdown}>
-                      <button type="button" className={styles.dropdownItem} onClick={goToProfile}>
-                        My profile
-                      </button>
-                      <button
-                        type="button"
-                        className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  <div className={styles.userMenu} ref={menuRef}>
+                    <button
+                      type="button"
+                      className={styles.userMenuTrigger}
+                      onClick={() => setMenuOpen((open) => !open)}
+                      aria-label={`Open menu for ${user.username}`}
+                      aria-expanded={menuOpen}
+                    >
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="" className={styles.userAvatar} />
+                      ) : (
+                        <span className={styles.userAvatarFallback}>{user.username.charAt(0).toUpperCase()}</span>
+                      )}
+                    </button>
+                    {menuOpen && (
+                      <div className={styles.dropdown}>
+                        <div className={styles.dropdownIdentity}>
+                          <span className={styles.dropdownUsername}>{user.username}</span>
+                        </div>
+                        <button type="button" className={styles.dropdownItem} onClick={goToProfile}>
+                          My profile
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                          onClick={handleLogout}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <>
                   <Link to={ROUTES.LOGIN} className={styles.link}>Login</Link>

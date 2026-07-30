@@ -1,0 +1,38 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    border-color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.button:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.primary {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-foreground);
+}
+
+.secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--card-foreground);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--border));
+}
