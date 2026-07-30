@@ -1,87 +1,117 @@
-.card {
+.cardLink {
   display: block;
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  text-decoration: none;
+  min-width: 0;
   color: inherit;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.card:hover,
-.card:focus-visible {
-  transform: translateY(-2px);
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-md);
+.cardLink:hover {
+  color: inherit;
+}
+
+.card {
+  height: 100%;
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.cardLink:hover .card,
+.cardLink:focus-visible .card {
+  border-color: color-mix(in srgb, var(--primary) 68%, var(--border));
 }
 
 .coverWrap {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  background: var(--color-surface-elevated);
-}
-
-.coverWrap::after {
-  position: absolute;
-  inset: auto 0 0;
-  height: 42%;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.28));
-  content: '';
-  pointer-events: none;
+  background: var(--secondary);
 }
 
 .cover {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
   transition: transform var(--transition-base);
 }
 
-.card:hover .cover {
+.cardLink:hover .cover,
+.cardLink:focus-visible .cover {
   transform: scale(1.035);
 }
 
+.yearBadge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+}
+
 .info {
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 156px;
   padding: var(--space-4);
 }
 
-.title {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: 800;
-  line-height: var(--leading-tight);
-  margin: 0;
-  color: var(--color-text);
-  white-space: nowrap;
+.category {
+  margin: 0 0 var(--space-2);
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.title,
+.artist {
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  margin: 0;
+  color: var(--card-foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: var(--leading-tight);
 }
 
 .artist {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--muted-foreground);
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: var(--leading-tight);
 }
 
-.year {
-  justify-self: start;
-  margin-top: var(--space-2);
-  padding: 0.15rem var(--space-2);
-  background: color-mix(in srgb, var(--color-surface-elevated) 82%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-weight: 600;
-  line-height: var(--leading-caption);
+.ratingBadge {
+  max-width: 100%;
+  margin-top: auto;
+}
+
+.ratingDivider {
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .info {
+    min-height: 142px;
+    padding: var(--space-3);
+  }
+
+  .category {
+    margin-bottom: var(--space-1);
+  }
+
+  .artist {
+    margin-bottom: var(--space-3);
+  }
+
+  .ratingBadge {
+    font-size: 0.65rem;
+  }
 }

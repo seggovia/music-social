@@ -27,9 +27,17 @@
   color: var(--primary-foreground);
 }
 
+.primary:hover {
+  color: var(--primary-foreground);
+}
+
 .secondary {
   background: var(--card);
   border: 1px solid var(--border);
+  color: var(--card-foreground);
+}
+
+.secondary:hover {
   color: var(--card-foreground);
 }
 

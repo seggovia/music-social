@@ -1,16 +1,36 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useChartsStore } from '@/features/charts/stores/chartsStore';
+import { Badge, ButtonLink, Card } from '@/shared/components/ui';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { ROUTES } from '@/shared/lib/constants';
+import { AlbumCard } from '../components/AlbumCard';
 import styles from './SearchPage.module.css';
 
 function formatRating(rating: number) {
-  return Number.isFinite(rating) ? rating.toFixed(1) : 'No rating';
+  return Number.isFinite(rating) ? rating.toFixed(1) : '0.0';
 }
 
 function formatReviewCount(count: number) {
-  return `${count} review${count === 1 ? '' : 's'}`;
+  return `${count} ${count === 1 ? 'calificación' : 'calificaciones'}`;
+}
+
+function RatingStars({ rating }: { rating: number }) {
+  const filledStars = Math.round(Math.min(5, Math.max(0, rating)));
+
+  return (
+    <span className={styles.stars} aria-label={`${formatRating(rating)} de 5 estrellas`}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <span
+          key={index}
+          className={index < filledStars ? styles.starFilled : styles.starEmpty}
+          aria-hidden="true"
+        >
+          ★
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export function SearchPage() {
@@ -21,127 +41,131 @@ export function SearchPage() {
     fetchTab,
   } = useChartsStore((state) => state);
   const spotlightAlbum = albums[0];
-  const rankedAlbums = albums.slice(1, 9);
+  const featuredAlbums = albums.slice(1, 9);
 
   useEffect(() => {
     void fetchTab('top-all-time');
   }, [fetchTab]);
 
   return (
-    <section className={styles.page}>
-      <header className={styles.hero}>
+    <div className={styles.page}>
+      <section className={styles.hero} aria-labelledby="discover-title">
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Album discovery</p>
-          <h1 className={styles.title}>Find your next essential record</h1>
+          <Badge variant="accent" className={styles.heroBadge}>
+            <span aria-hidden="true">↗</span>
+            Lo mejor calificado esta semana
+          </Badge>
+          <h1 id="discover-title" className={styles.title}>
+            Descubre tu próximo <span>álbum favorito</span>
+          </h1>
           <p className={styles.subtitle}>
-            Browse community favorites from the charts. For a specific album, use the autocomplete search in the navbar and jump straight to its album page.
+            Explora los discos mejor valorados por la comunidad, encuentra nuevas obsesiones
+            y comparte lo que estás escuchando.
           </p>
-          <Link to={ROUTES.CHARTS} className={styles.primaryLink}>
-            Open full charts
-          </Link>
+          <div className={styles.heroActions}>
+            <ButtonLink to={ROUTES.REVIEWS}>
+              Explorar el feed <span aria-hidden="true">→</span>
+            </ButtonLink>
+            <ButtonLink
+              to={spotlightAlbum ? `${ROUTES.ALBUMS}/${spotlightAlbum.id}` : ROUTES.CHARTS}
+              variant="secondary"
+            >
+              Álbum del día
+            </ButtonLink>
+          </div>
         </div>
 
-        <div className={styles.spotlight}>
+        <div className={styles.spotlightSlot}>
           {isLoading && !spotlightAlbum ? (
-            <div className={styles.spotlightSkeleton}>
+            <Card padding="none" className={styles.spotlightSkeleton} aria-hidden="true">
               <Skeleton height="100%" borderRadius="0" />
-            </div>
+            </Card>
           ) : null}
 
           {!isLoading && spotlightAlbum ? (
-            <Link to={`${ROUTES.ALBUMS}/${spotlightAlbum.id}`} className={styles.spotlightCard}>
-              <img
-                src={spotlightAlbum.coverUrl ?? 'https://placehold.co/520x520?text=No+Cover'}
-                alt={spotlightAlbum.title}
-                className={styles.spotlightCover}
-              />
-              <div className={styles.spotlightCopy}>
-                <p className={styles.spotlightRank}>#1 Top All Time</p>
-                <h2 className={styles.spotlightTitle}>{spotlightAlbum.title}</h2>
-                <p className={styles.spotlightArtist}>
-                  {spotlightAlbum.artist}{spotlightAlbum.year ? ` - ${spotlightAlbum.year}` : ''}
-                </p>
-                <div className={styles.metrics}>
-                  <span>{formatRating(spotlightAlbum.avgRating)} avg</span>
-                  <span>{formatReviewCount(spotlightAlbum.reviewCount)}</span>
+            <Link to={`${ROUTES.ALBUMS}/${spotlightAlbum.id}`} className={styles.spotlightLink}>
+              <Card padding="none" className={styles.spotlightCard}>
+                <div className={styles.spotlightCoverWrap}>
+                  <img
+                    src={spotlightAlbum.coverUrl ?? 'https://placehold.co/480x480?text=No+Cover'}
+                    alt={spotlightAlbum.title}
+                    className={styles.spotlightCover}
+                  />
                 </div>
-              </div>
+                <div className={styles.spotlightCopy}>
+                  <Badge className={styles.spotlightBadge}>Destacado</Badge>
+                  <h2 className={styles.spotlightTitle}>{spotlightAlbum.title}</h2>
+                  <p className={styles.spotlightArtist}>{spotlightAlbum.artist}</p>
+                  <div className={styles.spotlightRating}>
+                    <RatingStars rating={spotlightAlbum.avgRating} />
+                    <span className={styles.ratingNumber}>
+                      {formatRating(spotlightAlbum.avgRating)}
+                    </span>
+                  </div>
+                  <p className={styles.spotlightReviews}>
+                    {formatReviewCount(spotlightAlbum.reviewCount)}
+                  </p>
+                  <span className={styles.spotlightCta}>Ver álbum →</span>
+                </div>
+              </Card>
             </Link>
           ) : null}
 
           {!isLoading && !spotlightAlbum ? (
-            <div className={styles.emptySpotlight}>
-              <p className={styles.emptyTitle}>No charted albums yet</p>
-              <p className={styles.emptyText}>Rated albums will appear here as the community adds reviews.</p>
-            </div>
+            <Card className={styles.emptySpotlight}>
+              <h2 className={styles.emptyTitle}>Todavía no hay álbum destacado</h2>
+              <p className={styles.emptyText}>
+                Los discos aparecerán aquí cuando la comunidad publique sus calificaciones.
+              </p>
+            </Card>
           ) : null}
         </div>
-      </header>
+      </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
+      <section className={styles.featuredSection} aria-labelledby="featured-title">
+        <header className={styles.sectionHeader}>
           <div>
-            <p className={styles.eyebrow}>Top All Time</p>
-            <h2 className={styles.sectionTitle}>Community favorites</h2>
+            <h2 id="featured-title" className={styles.sectionTitle}>Álbumes destacados</h2>
+            <p className={styles.sectionSubtitle}>
+              Los favoritos históricos mejor valorados por la comunidad.
+            </p>
           </div>
-          <Link to={ROUTES.CHARTS} className={styles.textLink}>See charts</Link>
-        </div>
+          <Link to={ROUTES.CHARTS} className={styles.seeAllLink}>
+            Ver todo <span aria-hidden="true">→</span>
+          </Link>
+        </header>
 
         {error ? (
-          <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Charts unavailable</p>
+          <Card className={styles.emptyState}>
+            <h3 className={styles.emptyTitle}>No pudimos cargar los álbumes</h3>
             <p className={styles.emptyText}>{error}</p>
-          </div>
+          </Card>
         ) : null}
 
         {isLoading && !error ? (
           <div className={styles.albumGrid}>
             {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className={styles.skeletonTile}>
+              <Card key={index} padding="none" className={styles.skeletonCard} aria-hidden="true">
                 <Skeleton height="auto" borderRadius="0" style={{ aspectRatio: '1' }} />
-                <Skeleton height="1rem" />
-                <Skeleton height="0.8rem" width="72%" />
-              </div>
+                <div className={styles.skeletonCopy}>
+                  <Skeleton height="0.7rem" width="42%" />
+                  <Skeleton height="1rem" />
+                  <Skeleton height="0.8rem" width="72%" />
+                  <Skeleton height="1.25rem" width="84%" />
+                </div>
+              </Card>
             ))}
           </div>
         ) : null}
 
-        {!isLoading && !error && rankedAlbums.length > 0 ? (
+        {!isLoading && !error && featuredAlbums.length > 0 ? (
           <div className={styles.albumGrid}>
-            {rankedAlbums.map((album, index) => (
-              <Link key={album.id} to={`${ROUTES.ALBUMS}/${album.id}`} className={styles.albumTile}>
-                <div className={styles.coverFrame}>
-                  <img
-                    src={album.coverUrl ?? 'https://placehold.co/320x320?text=No+Cover'}
-                    alt={album.title}
-                    className={styles.cover}
-                    loading="lazy"
-                  />
-                </div>
-                <div className={styles.tileCopy}>
-                  <div className={styles.rankLine}>
-                    <span className={styles.rankBadge}>#{index + 2}</span>
-                    <span>{formatRating(album.avgRating)} avg</span>
-                  </div>
-                  <h3 className={styles.tileTitle}>{album.title}</h3>
-                  <p className={styles.tileArtist}>{album.artist}{album.year ? ` - ${album.year}` : ''}</p>
-                  <p className={styles.tileReviews}>{formatReviewCount(album.reviewCount)}</p>
-                </div>
-              </Link>
+            {featuredAlbums.map((album) => (
+              <AlbumCard key={album.id} album={album} />
             ))}
           </div>
         ) : null}
       </section>
-
-      <section className={styles.searchMessage}>
-        <div>
-          <p className={styles.eyebrow}>Looking for something specific?</p>
-          <h2 className={styles.sectionTitle}>Use the navbar search</h2>
-        </div>
-        <p className={styles.searchMessageText}>
-          Start typing an album title in the top bar, choose a suggestion, and music-social will route directly to that AlbumPage.
-        </p>
-      </section>
-    </section>
+    </div>
   );
 }
