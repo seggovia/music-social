@@ -32,6 +32,7 @@ export function Layout() {
     isAlbumSearchLoading || trimmedAlbumSearchQuery !== activeAlbumSearchQuery
   );
   const showSearchDropdown = searchOpen && Boolean(trimmedAlbumSearchQuery);
+  const isAuthRoute = location.pathname === ROUTES.LOGIN || location.pathname === ROUTES.REGISTER;
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? `${styles.link} ${styles.linkActive}` : styles.link;
@@ -119,7 +120,8 @@ export function Layout() {
 
   return (
     <div className={styles.layout}>
-      <header className={styles.header}>
+      {!isAuthRoute ? (
+        <header className={styles.header}>
         <nav className={styles.nav} aria-label="Primary navigation">
           <Link to={ROUTES.HOME} className={styles.brand}>
             <span className={styles.brandMark} aria-hidden="true">
@@ -265,13 +267,14 @@ export function Layout() {
             </div>
           </div>
         </nav>
-      </header>
+        </header>
+      ) : null}
       <main className={styles.main}>
         <div key={`${location.pathname}${location.search}`} className={styles.routeFrame}>
           <Outlet />
         </div>
       </main>
-      <ErrorToast />
+      {!isAuthRoute ? <ErrorToast /> : null}
     </div>
   );
 }
