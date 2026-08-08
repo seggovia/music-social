@@ -14,6 +14,7 @@ interface GenreJoin {
 interface AlbumRecord {
   id: string;
   musicbrainz_id: string;
+  release_group_id: string | null;
   title: string;
   release_date: string | null;
   cover_url: string | null;
@@ -28,6 +29,14 @@ function extractGenreNames(record: { album_genres?: GenreJoin[] }): string[] {
   return (record.album_genres ?? [])
     .map((ag) => ag.genres?.name)
     .filter((name): name is string => Boolean(name));
+}
+
+function mapAlbumRecord(record: AlbumRecord) {
+  return {
+    ...record,
+    artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
+    genreNames: extractGenreNames(record),
+  };
 }
 
 export const albumsRepository = {
@@ -46,11 +55,19 @@ export const albumsRepository = {
     if (error) throw error;
     const record = data as AlbumRecord | null;
     if (!record) return null;
-    return {
-      ...record,
-      artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
-      genreNames: extractGenreNames(record),
-    };
+    return mapAlbumRecord(record);
+  },
+
+  async findByReleaseGroupId(releaseGroupId: string) {
+    const { data, error } = await supabase
+      .from('albums')
+      .select('*, artists(name, musicbrainz_id), album_genres(genres(name))')
+      .eq('release_group_id', releaseGroupId)
+      .maybeSingle();
+
+    if (error) throw error;
+    const record = data as AlbumRecord | null;
+    return record ? mapAlbumRecord(record) : null;
   },
 
   async findById(id: string) {
@@ -63,11 +80,7 @@ export const albumsRepository = {
     if (error) throw error;
     const record = data as AlbumRecord | null;
     if (!record) return null;
-    return {
-      ...record,
-      artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
-      genreNames: extractGenreNames(record),
-    };
+    return mapAlbumRecord(record);
   },
 
   async search(query: string, pagination: Pagination) {
@@ -89,20 +102,61 @@ export const albumsRepository = {
 
   async create(data: {
     musicbrainz_id: string;
+    release_group_id: string | null;
     artist_id: string;
     title: string;
     release_date: string | null;
     cover_url: string | null;
     track_count: number | null;
   }) {
+    if (data.release_group_id) {
+      const existing = await albumsRepository.findByReleaseGroupId(data.release_group_id);
+      if (existing) return existing;
+    }
+
     const { data: created, error } = await supabase
       .from('albums')
       .insert(data)
-      .select('*, artists(name, musicbrainz_id)')
+      .select('*, artists(name, musicbrainz_id), album_genres(genres(name))')
       .single();
 
-    if (error) throw error;
-    return created as AlbumRecord;
+    if (error) {
+      // The unique index is the final guard if two requests try to cache
+      // different releases from the same release group concurrently.
+      if (error.code === '23505') {
+        const existingByGroup = data.release_group_id
+          ? await albumsRepository.findByReleaseGroupId(data.release_group_id)
+          : null;
+        if (existingByGroup) return existingByGroup;
+
+        const existingByRelease = await albumsRepository.findByMbid(data.musicbrainz_id);
+        if (existingByRelease) return existingByRelease;
+      }
+      throw error;
+    }
+
+    return mapAlbumRecord(created as AlbumRecord);
+  },
+
+  async assignReleaseGroupId(albumId: string, releaseGroupId: string) {
+    const { data, error } = await supabase
+      .from('albums')
+      .update({ release_group_id: releaseGroupId })
+      .eq('id', albumId)
+      .is('release_group_id', null)
+      .select('*, artists(name, musicbrainz_id), album_genres(genres(name))')
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === '23505') {
+        const existing = await albumsRepository.findByReleaseGroupId(releaseGroupId);
+        if (existing) return existing;
+      }
+      throw error;
+    }
+
+    if (data) return mapAlbumRecord(data as AlbumRecord);
+    return albumsRepository.findById(albumId);
   },
 
   /** Crea/encuentra cada género por nombre y conecta album_id <-> genre_id */
