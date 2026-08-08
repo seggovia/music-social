@@ -7,6 +7,7 @@ const DEFAULT_MESSAGE_BY_STATUS: Record<number, string> = {
   403: 'No tienes permiso para realizar esta acción.',
   404: 'No encontramos lo que buscas.',
   409: 'Hay un conflicto con esta acción.',
+  429: 'Has realizado demasiadas solicitudes. Espera un momento antes de intentarlo de nuevo.',
   500: 'Algo salió mal, intenta de nuevo.',
 };
 
@@ -41,6 +42,8 @@ const MESSAGE_OVERRIDES: Record<string, string> = {
   'Message can no longer be deleted for everyone': 'Ya no puedes anular este mensaje para todos.',
   'Maximum 2 pinned messages per conversation': 'Solo puedes fijar hasta 2 mensajes por conversación.',
   'Route not found': 'No encontramos lo que buscas.',
+  'API rate limit exceeded': 'Has realizado demasiadas solicitudes. Espera un minuto antes de intentarlo de nuevo.',
+  'Authentication rate limit exceeded': 'Demasiados intentos de acceso. Intenta de nuevo en 15 minutos.',
 };
 
 function getStatus(err: unknown) {

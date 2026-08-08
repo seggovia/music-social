@@ -1,19 +1,23 @@
+import { scheduleMusicBrainzRequest } from './requestThrottle.js';
+
 const MUSICBRAINZ_BASE_URL = 'https://musicbrainz.org/ws/2';
 const MUSICBRAINZ_USER_AGENT = 'music-social/1.0 (https://github.com/your-org/music-social)';
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${MUSICBRAINZ_BASE_URL}${path}`, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': MUSICBRAINZ_USER_AGENT,
-    },
+  return scheduleMusicBrainzRequest(async () => {
+    const response = await fetch(`${MUSICBRAINZ_BASE_URL}${path}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': MUSICBRAINZ_USER_AGENT,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`MusicBrainz API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json() as Promise<T>;
   });
-
-  if (!response.ok) {
-    throw new Error(`MusicBrainz API error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json() as Promise<T>;
 }
 
 export async function searchAlbums(query: string, options: { limit?: number; offset?: number } = {}) {

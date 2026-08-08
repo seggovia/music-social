@@ -4,6 +4,7 @@ const DEFAULT_ERROR_CODE_BY_STATUS: Record<number, string> = {
   403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',
+  429: 'RATE_LIMIT_EXCEEDED',
   500: 'INTERNAL_SERVER_ERROR',
 };
 
