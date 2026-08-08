@@ -1,6 +1,8 @@
 import { supabase } from '../../config/supabase.js';
 import type { Pagination } from '../../shared/pagination.js';
-import { createPaginatedResponse } from '../../shared/pagination.js';
+import { paginateArray } from '../../shared/pagination.js';
+
+const SEARCH_BATCH_SIZE = 1000;
 
 interface ArtistJoin {
   name?: string | null;
@@ -16,6 +18,7 @@ interface AlbumRecord {
   musicbrainz_id: string;
   release_group_id: string | null;
   title: string;
+  created_at: string;
   release_date: string | null;
   cover_url: string | null;
   track_count: number | null;
@@ -84,20 +87,40 @@ export const albumsRepository = {
   },
 
   async search(query: string, pagination: Pagination) {
-    const { data, error, count } = await supabase
-      .from('albums')
-      .select('*, artists(name, musicbrainz_id)', { count: 'exact' })
-      .ilike('title', `%${query}%`)
-      .order('title', { ascending: true })
-      .range(pagination.offset, pagination.offset + pagination.limit - 1);
+    const matchingRecords: AlbumRecord[] = [];
+    let rangeStart = 0;
 
-    if (error) throw error;
-    const records = (data ?? []).map((record: AlbumRecord) => ({
-      ...record,
-      artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
-    })) as AlbumRecord[];
+    // PostgREST does not expose DISTINCT ON through the query builder. Fetch
+    // matching rows in bounded batches so deduplication happens before paging;
+    // otherwise the same release group could leak across two response pages.
+    while (true) {
+      const { data, error } = await supabase
+        .from('albums')
+        .select('*, artists(name, musicbrainz_id)')
+        .ilike('title', `%${query}%`)
+        .order('title', { ascending: true })
+        .order('created_at', { ascending: true })
+        .range(rangeStart, rangeStart + SEARCH_BATCH_SIZE - 1);
 
-    return createPaginatedResponse(records, count ?? 0, pagination);
+      if (error) throw error;
+
+      const batch = (data ?? []).map((record: AlbumRecord) => ({
+        ...record,
+        artist_musicbrainz_id: record.artists?.musicbrainz_id ?? null,
+      })) as AlbumRecord[];
+      matchingRecords.push(...batch);
+
+      if (batch.length < SEARCH_BATCH_SIZE) break;
+      rangeStart += SEARCH_BATCH_SIZE;
+    }
+
+    const uniqueRecords = new Map<string, AlbumRecord>();
+    for (const record of matchingRecords) {
+      const key = record.release_group_id ? `release-group:${record.release_group_id}` : `album:${record.id}`;
+      if (!uniqueRecords.has(key)) uniqueRecords.set(key, record);
+    }
+
+    return paginateArray([...uniqueRecords.values()], pagination);
   },
 
   async create(data: {
