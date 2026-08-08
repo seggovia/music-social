@@ -9,6 +9,7 @@ import { createPaginatedResponse } from '../../shared/pagination.js';
 function normalizeRelease(release: Record<string, unknown>) {
   const artistCredit = Array.isArray(release['artist-credit']) ? (release['artist-credit'] as Array<Record<string, unknown>>) : [];
   const artist = artistCredit[0]?.artist as Record<string, unknown> | undefined;
+  const releaseGroup = release['release-group'] as Record<string, unknown> | undefined;
   const media = Array.isArray(release.media) ? (release.media as Array<Record<string, unknown>>) : [];
   const tags = Array.isArray(release.tags) ? (release.tags as Array<Record<string, unknown>>) : [];
   const genresField = Array.isArray(release.genres) ? (release.genres as Array<Record<string, unknown>>) : [];
@@ -25,6 +26,7 @@ function normalizeRelease(release: Record<string, unknown>) {
 
   return {
     mbid: typeof release.id === 'string' ? release.id : '',
+    releaseGroupId: typeof releaseGroup?.id === 'string' ? releaseGroup.id : null,
     title: typeof release.title === 'string' ? release.title : 'Unknown album',
     artist: artistCredit.map((entry) => String(entry.name ?? '')).filter(Boolean).join(', ') || (artist?.name ? String(artist.name) : 'Unknown Artist'),
     artistMbid: typeof artist?.id === 'string' ? artist.id : null,
@@ -37,6 +39,40 @@ function normalizeRelease(release: Record<string, unknown>) {
       ...tags.map((tag) => String(tag.name ?? '')),
     ].filter(Boolean))],
     media,
+  };
+}
+
+type NormalizedRelease = ReturnType<typeof normalizeRelease>;
+
+export function uniqueReleasesByGroup(releases: Array<Record<string, unknown>>): NormalizedRelease[] {
+  const seen = new Set<string>();
+
+  return releases
+    .map(normalizeRelease)
+    .filter((release) => {
+      const key = release.releaseGroupId ?? release.mbid;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function mapCachedAlbum(cached: Awaited<ReturnType<typeof albumsRepository.findById>>) {
+  if (!cached) return null;
+
+  return {
+    id: cached.id,
+    mbid: cached.musicbrainz_id,
+    releaseGroupId: cached.release_group_id,
+    title: cached.title,
+    artist: cached.artists?.name ?? 'Unknown Artist',
+    artistMbid: cached.artist_musicbrainz_id ?? null,
+    coverUrl: cached.cover_url,
+    year: cached.release_date ? new Date(cached.release_date).getFullYear() : null,
+    releaseDate: cached.release_date,
+    trackCount: cached.track_count,
+    genres: cached.genreNames ?? [],
+    tracks: [],
   };
 }
 
@@ -53,6 +89,7 @@ export const albumsService = {
       return createPaginatedResponse(
         cached.data.map((album) => ({
           mbid: album.musicbrainz_id,
+          releaseGroupId: album.release_group_id,
           title: album.title,
           artist: album.artists?.name ?? 'Unknown Artist',
           artistMbid: album.artists?.musicbrainz_id ?? null,
@@ -66,15 +103,19 @@ export const albumsService = {
 
     const response = await searchAlbums(query, { limit: pagination.limit, offset: pagination.offset });
     const releases = Array.isArray(response.releases) ? response.releases : [];
+    const uniqueReleases = uniqueReleasesByGroup(releases as Array<Record<string, unknown>>);
 
     const results = await Promise.all(
-      releases.map(async (release) => {
-        const normalized = normalizeRelease(release as Record<string, unknown>);
-        const cached = await albumsRepository.findByMbid(normalized.mbid);
+      uniqueReleases.map(async (normalized) => {
+        const cachedByGroup = normalized.releaseGroupId
+          ? await albumsRepository.findByReleaseGroupId(normalized.releaseGroupId)
+          : null;
+        const cached = cachedByGroup ?? await albumsRepository.findByMbid(normalized.mbid);
 
         if (cached) {
           return {
             mbid: cached.musicbrainz_id,
+            releaseGroupId: cached.release_group_id,
             title: cached.title,
             artist: cached.artists?.name ?? normalized.artist,
             artistMbid: cached.artist_musicbrainz_id ?? normalized.artistMbid,
@@ -93,25 +134,31 @@ export const albumsService = {
 
   async getOrCache(mbid: string) {
     const cachedById = await albumsRepository.findById(mbid);
-    const cached = cachedById ?? await albumsRepository.findByMbid(mbid);
-    if (cached) {
-      return {
-        id: cached.id,
-        mbid: cached.musicbrainz_id,
-        title: cached.title,
-        artist: cached.artists?.name ?? 'Unknown Artist',
-        artistMbid: cached.artist_musicbrainz_id ?? null,
-        coverUrl: cached.cover_url,
-        year: cached.release_date ? new Date(cached.release_date).getFullYear() : null,
-        releaseDate: cached.release_date,
-        trackCount: cached.track_count,
-        genres: cached.genreNames ?? [],
-        tracks: [],
-      };
-    }
+    if (cachedById) return mapCachedAlbum(cachedById);
+
+    const cachedByRelease = await albumsRepository.findByMbid(mbid);
+    if (cachedByRelease?.release_group_id) return mapCachedAlbum(cachedByRelease);
 
     const release = await getAlbum(mbid);
     const normalized = normalizeRelease(release as Record<string, unknown>);
+
+    if (normalized.releaseGroupId) {
+      const cachedByGroup = await albumsRepository.findByReleaseGroupId(normalized.releaseGroupId);
+      if (cachedByGroup) return mapCachedAlbum(cachedByGroup);
+
+      // Existing rows created before release_group_id was introduced are
+      // claimed in place so their internal UUID and all references remain intact.
+      if (cachedByRelease) {
+        const claimed = await albumsRepository.assignReleaseGroupId(
+          cachedByRelease.id,
+          normalized.releaseGroupId,
+        );
+        return mapCachedAlbum(claimed ?? cachedByRelease);
+      }
+    } else if (cachedByRelease) {
+      return mapCachedAlbum(cachedByRelease);
+    }
+
     normalized.coverUrl = await getCoverArt(mbid);
 
     const artistCredit = Array.isArray(release['artist-credit']) ? release['artist-credit'] as Array<Record<string, unknown>> : [];
@@ -152,6 +199,7 @@ export const albumsService = {
 
     const inserted = await albumsRepository.create({
       musicbrainz_id: normalized.mbid,
+      release_group_id: normalized.releaseGroupId,
       artist_id: artistId,
       title: normalized.title,
       release_date: normalized.releaseDate ?? null,
@@ -175,6 +223,7 @@ export const albumsService = {
     return {
       id: inserted.id,
       mbid: inserted.musicbrainz_id,
+      releaseGroupId: inserted.release_group_id,
       title: inserted.title,
       artist: normalized.artist,
       artistMbid: normalized.artistMbid,
