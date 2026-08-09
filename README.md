@@ -75,6 +75,10 @@ It's also a from-scratch build on a modern stack (React, TypeScript, Supabase) r
 | Auth | JWT via Supabase Auth |
 | External APIs | [MusicBrainz](https://musicbrainz.org) (albums/artists), [Cover Art Archive](https://coverartarchive.org) (artwork), [Last.fm](https://www.last.fm) (genres) |
 
+## Database schema
+
+![Database Schema](docs/screenshots/database-schema.png)
+
 ## Project structure
 
 ```
