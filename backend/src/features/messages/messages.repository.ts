@@ -4,6 +4,7 @@ import type { Pagination } from '../../shared/pagination.js';
 import { createPaginatedResponse } from '../../shared/pagination.js';
 
 const MESSAGE_WITH_SENDER_SELECT = '*, sender:users!messages_sender_id_fkey(id, username, avatar_url)';
+const CONVERSATION_WITH_USERS_SELECT = '*, user_one:users!conversations_user_one_id_fkey(id, username, avatar_url), user_two:users!conversations_user_two_id_fkey(id, username, avatar_url)';
 
 export const messagesRepository = {
   async healthCheck() {
@@ -14,7 +15,7 @@ export const messagesRepository = {
   async findOrCreateConversation(userOneId: string, userTwoId: string) {
     const { data: directConversation, error: directError } = await supabase
       .from('conversations')
-      .select('*')
+      .select(CONVERSATION_WITH_USERS_SELECT)
       .eq('user_one_id', userOneId)
       .eq('user_two_id', userTwoId)
       .maybeSingle();
@@ -29,7 +30,7 @@ export const messagesRepository = {
 
     const { data: reverseConversation, error: reverseError } = await supabase
       .from('conversations')
-      .select('*')
+      .select(CONVERSATION_WITH_USERS_SELECT)
       .eq('user_one_id', userTwoId)
       .eq('user_two_id', userOneId)
       .maybeSingle();
@@ -45,7 +46,7 @@ export const messagesRepository = {
     const { data, error } = await supabase
       .from('conversations')
       .insert({ user_one_id: userOneId, user_two_id: userTwoId })
-      .select()
+      .select(CONVERSATION_WITH_USERS_SELECT)
       .single();
 
     if (error) {
@@ -58,14 +59,38 @@ export const messagesRepository = {
   async getConversations(userId: string) {
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, user_one:users!conversations_user_one_id_fkey(id, username, avatar_url), user_two:users!conversations_user_two_id_fkey(id, username, avatar_url)')
+      .select(CONVERSATION_WITH_USERS_SELECT)
       .or(`user_one_id.eq.${userId},user_two_id.eq.${userId}`);
 
     if (error) {
       throw new AppError('Failed to fetch conversations', 500, error);
     }
 
-    return data ?? [];
+    const conversations = data ?? [];
+    if (conversations.length === 0) return conversations;
+
+    const { data: unreadMessages, error: unreadError } = await supabase
+      .from('messages')
+      .select('conversation_id')
+      .in('conversation_id', conversations.map((conversation) => conversation.id))
+      .neq('sender_id', userId)
+      .eq('deleted_for_all', false)
+      .is('read_at', null);
+
+    if (unreadError) {
+      throw new AppError('Failed to count unread messages', 500, unreadError);
+    }
+
+    const unreadByConversation = new Map<string, number>();
+    for (const message of unreadMessages ?? []) {
+      const count = unreadByConversation.get(message.conversation_id) ?? 0;
+      unreadByConversation.set(message.conversation_id, count + 1);
+    }
+
+    return conversations.map((conversation) => ({
+      ...conversation,
+      unread_count: unreadByConversation.get(conversation.id) ?? 0,
+    }));
   },
 
   async getMessages(conversationId: string, pagination: Pagination) {

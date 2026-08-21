@@ -91,8 +91,11 @@ export function MessagesPage() {
     deleteMessage,
     togglePin,
     fetchPinnedMessages,
+    pinnedMessagesVersion,
+    subscribeToRealtime,
   } = useMessagesStore();
   const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const location = useLocation();
   const [inputText, setInputText] = useState('');
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
@@ -112,10 +115,16 @@ export function MessagesPage() {
   const lastScrollTopRef = useRef(0);
   const previousLastMessageIdRef = useRef<string | null | undefined>(undefined);
   const previousPinnedCountRef = useRef(0);
+  const handledLocationConversationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     void fetchConversations();
   }, [fetchConversations]);
+
+  useEffect(() => {
+    if (!accessToken || !user?.id) return;
+    return subscribeToRealtime(accessToken);
+  }, [accessToken, subscribeToRealtime, user?.id]);
 
   useEffect(() => {
     setLocalMessages(messages ?? []);
@@ -142,7 +151,7 @@ export function MessagesPage() {
     };
 
     void loadPinnedMessages();
-  }, [currentConversation, fetchPinnedMessages, user?.id]);
+  }, [currentConversation, fetchPinnedMessages, pinnedMessagesVersion, user?.id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -170,12 +179,18 @@ export function MessagesPage() {
 
   useEffect(() => {
     const conversationId = location.state?.conversationId as string | undefined;
-    if (!conversationId || conversations.length === 0) {
+    if (!conversationId) {
+      handledLocationConversationIdRef.current = null;
+      return;
+    }
+
+    if (handledLocationConversationIdRef.current === conversationId || conversations.length === 0) {
       return;
     }
 
     const conversation = conversations.find((item) => item.id === conversationId) ?? null;
     if (conversation) {
+      handledLocationConversationIdRef.current = conversationId;
       pendingInitialScrollRef.current = conversationId;
       olderScrollAnchorRef.current = null;
       isNearBottomRef.current = true;
@@ -522,6 +537,14 @@ export function MessagesPage() {
                     <div className={styles.conversationContent}>
                       <div className={styles.conversationTopLine}>
                         <div className={styles.username}>{participant.username}</div>
+                        {conversation.unread_count > 0 && (
+                          <span
+                            className={styles.unreadBadge}
+                            aria-label={`${conversation.unread_count} mensajes sin leer`}
+                          >
+                            {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                          </span>
+                        )}
                       </div>
                       <div className={styles.lastMessage}>@{participant.username}</div>
                     </div>

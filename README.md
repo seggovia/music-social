@@ -124,6 +124,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 LASTFM_API_KEY=your_lastfm_api_key
 ```
 
+Create `frontend/.env` from `frontend/.env.example` and provide the project's
+Supabase URL plus its public/anon key. The key is safe to expose in the browser;
+never put `SUPABASE_SERVICE_ROLE_KEY` in the frontend.
+
 Apply the SQL migrations in `supabase/migrations/` via your Supabase project's SQL Editor, in numeric order.
 
 Run backend + frontend together:
@@ -153,7 +157,7 @@ npx tsx src/scripts/merge-duplicate-albums.ts --execute
 
 Planned, not yet implemented:
 
-- [ ] Real-time messaging (Supabase Realtime)
+- [x] Real-time messaging (Supabase Realtime)
 - [ ] Review voting (+/-)
 - [ ] "Listened" catalog (without requiring a review)
 - [ ] Notifications

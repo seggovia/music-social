@@ -29,6 +29,13 @@ export const messagesController = {
     res.json(messages);
   }) as RequestHandler,
 
+  markAsRead: (async (req, res) => {
+    const conversationId = req.params.conversationId as string;
+    const userId = req.userId!;
+    await messagesService.markAsRead(conversationId, userId);
+    res.status(204).end();
+  }) as RequestHandler,
+
   sendMessage: (async (req, res) => {
     const conversationId = req.params.conversationId as string;
     const senderId = req.userId!;
