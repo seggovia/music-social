@@ -120,6 +120,22 @@
   white-space: nowrap;
 }
 
+.unreadBadge {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0 var(--space-1);
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+  color: var(--primary-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .lastMessage {
   margin-top: var(--space-1);
   overflow: hidden;

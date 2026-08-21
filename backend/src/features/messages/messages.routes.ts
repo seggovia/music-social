@@ -9,6 +9,7 @@ router.use(authMiddleware);
 router.get('/', asyncHandler(messagesController.getConversations));
 router.post('/start', asyncHandler(messagesController.startConversation));
 router.get('/:conversationId', asyncHandler(messagesController.getMessages));
+router.post('/:conversationId/read', asyncHandler(messagesController.markAsRead));
 router.post('/:conversationId', asyncHandler(messagesController.sendMessage));
 router.put('/:conversationId/messages/:messageId', asyncHandler(messagesController.editMessage));
 router.delete('/:conversationId/messages/:messageId', asyncHandler(messagesController.deleteMessage));

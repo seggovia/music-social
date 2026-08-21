@@ -45,6 +45,10 @@ export const messagesService = {
     return messages;
   },
 
+  async markAsRead(conversationId: string, userId: string) {
+    await messagesRepository.markAsRead(conversationId, userId);
+  },
+
   async sendMessage(conversationId: string, senderId: string, body: unknown) {
     return messagesRepository.sendMessage(conversationId, senderId, parseMessageBody(body));
   },

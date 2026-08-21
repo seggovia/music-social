@@ -10,6 +10,7 @@ export interface Conversation {
   user_two_id: string;
   created_at: string;
   updated_at: string;
+  unread_count: number;
   user_one: ConversationUser;
   user_two: ConversationUser;
 }
@@ -41,13 +42,17 @@ export interface MessagesState {
   messagesPage: number;
   messagesHasMore: boolean;
   messagesTotal: number;
+  pinnedMessagesVersion: number;
   fetchConversations: () => Promise<void>;
   startConversation: (targetUserId: string) => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
   loadOlderMessages: (conversationId: string) => Promise<void>;
+  markConversationAsRead: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, body: string) => Promise<void>;
   editMessage: (conversationId: string, messageId: string, body: string) => Promise<Message>;
   deleteMessage: (conversationId: string, messageId: string, mode: MessageDeleteMode) => Promise<Message>;
   togglePin: (conversationId: string, message: Message) => Promise<Message>;
   fetchPinnedMessages: (conversationId: string) => Promise<Message[]>;
+  subscribeToRealtime: (accessToken: string) => () => void;
+  resyncMessages: (conversationId: string) => Promise<void>;
 }
