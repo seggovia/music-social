@@ -322,6 +322,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     const userId = useAuthStore.getState().user?.id;
     const realtime = supabaseRealtime;
     if (!userId || !realtime) {
+      console.warn('[messages realtime] Subscription skipped because the user session or Supabase configuration is unavailable.');
       return () => undefined;
     }
 
@@ -410,8 +411,13 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     void realtime.realtime.setAuth(accessToken).then(() => {
       if (messagesRealtimeChannel !== channel) return;
 
-      channel.subscribe((status) => {
-        if (status !== 'SUBSCRIBED') return;
+      channel.subscribe((status, error) => {
+        if (status !== 'SUBSCRIBED') {
+          console.error('[messages realtime] Subscription did not complete.', { status, error });
+          return;
+        }
+
+        console.info('[messages realtime] Subscription established.');
 
         const activeConversationId = get().currentConversation?.id;
         if (activeConversationId) {
