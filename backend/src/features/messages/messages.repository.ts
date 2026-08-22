@@ -6,6 +6,12 @@ import { createPaginatedResponse } from '../../shared/pagination.js';
 const MESSAGE_WITH_SENDER_SELECT = '*, sender:users!messages_sender_id_fkey(id, username, avatar_url)';
 const CONVERSATION_WITH_USERS_SELECT = '*, user_one:users!conversations_user_one_id_fkey(id, username, avatar_url), user_two:users!conversations_user_two_id_fkey(id, username, avatar_url)';
 
+function orderConversationParticipants(userOneId: string, userTwoId: string): [string, string] {
+  return userOneId.toLowerCase() < userTwoId.toLowerCase()
+    ? [userOneId, userTwoId]
+    : [userTwoId, userOneId];
+}
+
 export const messagesRepository = {
   async healthCheck() {
     void supabase;
@@ -13,39 +19,26 @@ export const messagesRepository = {
   },
 
   async findOrCreateConversation(userOneId: string, userTwoId: string) {
-    const { data: directConversation, error: directError } = await supabase
+    const [orderedUserOneId, orderedUserTwoId] = orderConversationParticipants(userOneId, userTwoId);
+
+    const { data: existingConversation, error: findError } = await supabase
       .from('conversations')
       .select(CONVERSATION_WITH_USERS_SELECT)
-      .eq('user_one_id', userOneId)
-      .eq('user_two_id', userTwoId)
+      .eq('user_one_id', orderedUserOneId)
+      .eq('user_two_id', orderedUserTwoId)
       .maybeSingle();
 
-    if (directError) {
-      throw new AppError('Failed to look up conversation', 500, directError);
+    if (findError) {
+      throw new AppError('Failed to look up conversation', 500, findError);
     }
 
-    if (directConversation) {
-      return directConversation;
-    }
-
-    const { data: reverseConversation, error: reverseError } = await supabase
-      .from('conversations')
-      .select(CONVERSATION_WITH_USERS_SELECT)
-      .eq('user_one_id', userTwoId)
-      .eq('user_two_id', userOneId)
-      .maybeSingle();
-
-    if (reverseError) {
-      throw new AppError('Failed to look up conversation', 500, reverseError);
-    }
-
-    if (reverseConversation) {
-      return reverseConversation;
+    if (existingConversation) {
+      return existingConversation;
     }
 
     const { data, error } = await supabase
       .from('conversations')
-      .insert({ user_one_id: userOneId, user_two_id: userTwoId })
+      .insert({ user_one_id: orderedUserOneId, user_two_id: orderedUserTwoId })
       .select(CONVERSATION_WITH_USERS_SELECT)
       .single();
 
