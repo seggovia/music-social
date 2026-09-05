@@ -9,6 +9,7 @@ export const reviewsRouter = Router();
 reviewsRouter.get('/', asyncHandler(reviewsController.healthCheck));
 reviewsRouter.post('/', authMiddleware, asyncHandler(reviewsController.create));
 reviewsRouter.get('/feed', optionalAuthMiddleware, asyncHandler(reviewsController.getFeed));
+reviewsRouter.get('/album/:albumId/mine', authMiddleware, asyncHandler(reviewsController.getMineByAlbum));
 reviewsRouter.get('/album/:albumId', asyncHandler(reviewsController.getByAlbum));
 reviewsRouter.get('/user/:userId', asyncHandler(reviewsController.getByUser));
 reviewsRouter.get('/:reviewId/comments', optionalAuthMiddleware, asyncHandler(reviewCommentsController.list));

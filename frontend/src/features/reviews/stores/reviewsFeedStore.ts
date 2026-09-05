@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { reportError } from '@/shared/lib/errors';
 import { reviewsApi } from '../api/reviewsApi';
-import type { FeedReview, ReviewFeedScope } from '../types';
+import type { FeedReview, Review, ReviewFeedScope } from '../types';
 
 const FEED_LIMIT = 12;
 let latestRequestId = 0;
@@ -16,7 +16,10 @@ interface ReviewsFeedState {
   hasMore: boolean;
   total: number;
   fetchFeed: (scope: ReviewFeedScope) => Promise<void>;
+  refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
+  patchReview: (review: Review) => void;
+  removeReview: (id: string) => void;
 }
 
 export const useReviewsFeedStore = create<ReviewsFeedState>((set, get) => ({
@@ -64,6 +67,33 @@ export const useReviewsFeedStore = create<ReviewsFeedState>((set, get) => ({
     }
   },
 
+  refresh: async () => {
+    const { scope } = get();
+    const requestId = ++latestRequestId;
+    set({ isLoading: true, isLoadingMore: false, error: null });
+
+    try {
+      const response = await reviewsApi.getFeed(scope, 1, FEED_LIMIT);
+      if (requestId !== latestRequestId) return;
+
+      set({
+        items: response.data,
+        page: response.meta.page,
+        hasMore: response.meta.hasMore,
+        total: response.meta.total,
+        isLoading: false,
+      });
+    } catch (error) {
+      if (requestId !== latestRequestId) return;
+      const message = reportError(
+        error,
+        'No pudimos actualizar el feed de reseñas. Intenta de nuevo.',
+        () => get().refresh(),
+      );
+      set({ error: message, isLoading: false });
+    }
+  },
+
   loadMore: async () => {
     const { scope, page, hasMore, isLoadingMore, isLoading } = get();
     if (!hasMore || isLoadingMore || isLoading) return;
@@ -92,5 +122,25 @@ export const useReviewsFeedStore = create<ReviewsFeedState>((set, get) => ({
       );
       set({ error: message, isLoadingMore: false });
     }
+  },
+
+  patchReview: (review) => {
+    set((state) => ({
+      items: state.items.map((item) => item.id === review.id
+        ? { ...item, rating: Number(review.rating), content: review.content }
+        : item),
+    }));
+  },
+
+  removeReview: (id) => {
+    set((state) => {
+      const exists = state.items.some((item) => item.id === id);
+      if (!exists) return state;
+
+      return {
+        items: state.items.filter((item) => item.id !== id),
+        total: Math.max(0, state.total - 1),
+      };
+    });
   },
 }));

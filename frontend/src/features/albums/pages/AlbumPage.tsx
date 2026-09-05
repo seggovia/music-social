@@ -39,6 +39,9 @@ export function AlbumPage() {
   const reviews = useReviewsStore((state) => state.reviews);
   const totalReviews = useReviewsStore((state) => state.total);
   const user = useAuthStore((state) => state.user);
+  const existingReview = user
+    ? reviews.find((review) => review.user_id === user.id && review.album_id === currentAlbum?.id)
+    : null;
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / reviews.length
     : 0;
@@ -213,7 +216,7 @@ export function AlbumPage() {
 
           <div id="album-review-form" className={styles.reviewFormAnchor}>
             {user ? (
-              <ReviewForm albumId={currentAlbum.id} onSuccess={() => fetchByAlbum(currentAlbum.id)} />
+              <ReviewForm albumId={currentAlbum.id} existingReview={existingReview} />
             ) : (
               <Card className={styles.loginPrompt}>
                 <Link to={ROUTES.LOGIN}>Inicia sesión</Link> para calificar este álbum.

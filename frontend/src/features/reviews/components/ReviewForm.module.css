@@ -60,6 +60,23 @@
   justify-self: start;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.deleteButton {
+  border-color: color-mix(in srgb, var(--destructive) 52%, var(--border));
+  color: var(--destructive);
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--destructive) 10%, var(--card));
+  border-color: var(--destructive);
+  color: var(--destructive);
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -75,7 +92,9 @@
     padding: var(--space-4);
   }
 
-  .submitButton {
+  .actions,
+  .submitButton,
+  .deleteButton {
     width: 100%;
   }
 }
