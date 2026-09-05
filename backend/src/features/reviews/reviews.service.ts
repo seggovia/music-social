@@ -36,6 +36,10 @@ export const reviewsService = {
     return reviewsRepository.findByAlbum(albumId, pagination);
   },
 
+  async getMineByAlbum(userId: string, albumId: string) {
+    return reviewsRepository.findByUserAndAlbum(userId, albumId);
+  },
+
   async getFeed(viewerId: string | undefined, rawScope: string, pagination: Pagination) {
     if (rawScope !== 'all' && rawScope !== 'following') {
       throw new AppError('Invalid review feed scope', 400);

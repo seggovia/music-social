@@ -33,6 +33,12 @@ export const reviewsController = {
     res.json(reviews);
   }) as RequestHandler,
 
+  getMineByAlbum: (async (req, res) => {
+    const albumId = req.params.albumId as string;
+    const review = await reviewsService.getMineByAlbum(req.userId!, albumId);
+    res.json(review);
+  }) as RequestHandler,
+
   getByUser: (async (req, res) => {
     const userId = req.params.userId as string;
     const pagination = parsePagination(req.query, { defaultLimit: 10, maxLimit: 50 });

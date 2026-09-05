@@ -28,6 +28,9 @@ export const reviewsApi = {
   getByAlbum: (albumId: string, page = 1, limit = 10) =>
     apiClient.get<PaginatedResponse<Review>>(`/reviews/album/${albumId}?page=${page}&limit=${limit}`),
 
+  getMineByAlbum: (albumId: string) =>
+    apiClient.get<Review | null>(`/reviews/album/${encodeURIComponent(albumId)}/mine`, authOptions()),
+
   getByUser: (userId: string, page = 1, limit = 10) =>
     apiClient.get<PaginatedResponse<Review>>(`/reviews/user/${userId}?page=${page}&limit=${limit}`),
 

@@ -197,4 +197,16 @@ export const reviewsRepository = {
     if (error) throw new AppError('Failed to check existing review', 500, error);
     return data;
   },
+
+  async findByUserAndAlbum(userId: string, albumId: string) {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*, users(username, avatar_url), review_comments(count)')
+      .eq('user_id', userId)
+      .eq('album_id', albumId)
+      .maybeSingle();
+
+    if (error) throw new AppError('Failed to fetch your review', 500, error);
+    return data;
+  },
 };

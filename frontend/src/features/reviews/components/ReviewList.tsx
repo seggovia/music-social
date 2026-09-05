@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '@/features/auth/stores/authStore';
 import { Badge, Button, Card } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/lib/constants';
 import { useReviewsStore } from '../stores/reviewsStore';
@@ -36,8 +35,7 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export function ReviewList() {
-  const { reviews, total, isLoading, isLoadingMore, hasMore, loadMore, remove } = useReviewsStore();
-  const user = useAuthStore((state) => state.user);
+  const { reviews, total, isLoading, isLoadingMore, hasMore, loadMore } = useReviewsStore();
 
   return (
     <section className={styles.section}>
@@ -88,12 +86,6 @@ export function ReviewList() {
               </header>
 
               <p className={styles.content}>{review.content}</p>
-
-              {user?.id === review.user_id ? (
-                <button type="button" onClick={() => void remove(review.id)} className={styles.deleteButton}>
-                  Eliminar review
-                </button>
-              ) : null}
 
               <ReviewComments
                 reviewId={review.id}
