@@ -3,7 +3,7 @@ import type { Pagination } from '../../shared/pagination.js';
 import { albumsRepository } from '../albums/albums.repository.js';
 import { followsRepository } from '../follows/follows.repository.js';
 import { reviewsRepository } from './reviews.repository.js';
-import type { ReviewsFeedScope } from './reviews.types.js';
+import type { ReviewsFeedScope, ReviewVoteValue } from './reviews.types.js';
 
 export const reviewsService = {
   async healthCheck() {
@@ -84,5 +84,30 @@ export const reviewsService = {
     if (review.user_id !== userId) throw new AppError('Not authorized', 403);
 
     await reviewsRepository.delete(id, userId);
+  },
+
+  async getVoteSummary(reviewId: string, userId?: string) {
+    const review = await reviewsRepository.findById(reviewId);
+    if (!review) throw new AppError('Review not found', 404);
+
+    return reviewsRepository.getVoteSummary(reviewId, userId);
+  },
+
+  async vote(reviewId: string, userId: string, value: unknown) {
+    if (value !== 1 && value !== -1) {
+      throw new AppError('Review vote must be 1 or -1', 400);
+    }
+
+    const review = await reviewsRepository.findById(reviewId);
+    if (!review) throw new AppError('Review not found', 404);
+
+    const currentVote = await reviewsRepository.findVote(reviewId, userId);
+    if (currentVote === value) {
+      await reviewsRepository.deleteVote(reviewId, userId);
+    } else {
+      await reviewsRepository.saveVote(reviewId, userId, value as ReviewVoteValue);
+    }
+
+    return reviewsRepository.getVoteSummary(reviewId, userId);
   },
 };

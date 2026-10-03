@@ -3,6 +3,7 @@ import { Badge, Button, Card } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/lib/constants';
 import { useReviewsStore } from '../stores/reviewsStore';
 import { ReviewComments } from './ReviewComments';
+import { ReviewVoteControl } from './ReviewVoteControl';
 import styles from './ReviewList.module.css';
 
 const reviewDateFormatter = new Intl.DateTimeFormat('es-CL', {
@@ -86,6 +87,8 @@ export function ReviewList() {
               </header>
 
               <p className={styles.content}>{review.content}</p>
+
+              <ReviewVoteControl reviewId={review.id} />
 
               <ReviewComments
                 reviewId={review.id}

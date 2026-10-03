@@ -7,6 +7,8 @@ import type {
   Review,
   ReviewComment,
   ReviewFeedScope,
+  ReviewVoteSummary,
+  ReviewVoteValue,
   UpdateReviewInput,
 } from '../types';
 
@@ -53,6 +55,19 @@ export const reviewsApi = {
   deleteComment: (reviewId: string, commentId: string) =>
     apiClient.delete<void>(
       `/reviews/${encodeURIComponent(reviewId)}/comments/${encodeURIComponent(commentId)}`,
+      authOptions(),
+    ),
+
+  getVoteSummary: (reviewId: string) =>
+    apiClient.get<ReviewVoteSummary>(
+      `/reviews/${encodeURIComponent(reviewId)}/votes`,
+      authOptions(),
+    ),
+
+  vote: (reviewId: string, value: ReviewVoteValue) =>
+    apiClient.post<ReviewVoteSummary>(
+      `/reviews/${encodeURIComponent(reviewId)}/vote`,
+      { value },
       authOptions(),
     ),
 

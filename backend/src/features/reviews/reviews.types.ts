@@ -5,6 +5,15 @@ export interface ReviewsHealthResponse {
 
 export type ReviewsFeedScope = 'all' | 'following';
 
+export type ReviewVoteValue = -1 | 1;
+
+export interface ReviewVoteSummary {
+  positive: number;
+  negative: number;
+  net: number;
+  currentVote: ReviewVoteValue | null;
+}
+
 export interface ReviewFeedItem {
   id: string;
   userId: string;

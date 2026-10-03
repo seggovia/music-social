@@ -2,7 +2,7 @@ import { supabase } from '../../config/supabase.js';
 import { AppError } from '../../shared/errors/AppError.js';
 import type { Pagination } from '../../shared/pagination.js';
 import { createPaginatedResponse } from '../../shared/pagination.js';
-import type { ReviewFeedItem } from './reviews.types.js';
+import type { ReviewFeedItem, ReviewVoteSummary, ReviewVoteValue } from './reviews.types.js';
 
 interface UserJoin {
   username: string;
@@ -208,5 +208,69 @@ export const reviewsRepository = {
 
     if (error) throw new AppError('Failed to fetch your review', 500, error);
     return data;
+  },
+
+  async findVote(reviewId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('review_votes')
+      .select('value')
+      .eq('review_id', reviewId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw new AppError('Failed to fetch review vote', 500, error);
+    return data ? (Number(data.value) as ReviewVoteValue) : null;
+  },
+
+  async getVoteSummary(reviewId: string, userId?: string): Promise<ReviewVoteSummary> {
+    const positiveQuery = supabase
+      .from('review_votes')
+      .select('id', { count: 'exact', head: true })
+      .eq('review_id', reviewId)
+      .eq('value', 1);
+    const negativeQuery = supabase
+      .from('review_votes')
+      .select('id', { count: 'exact', head: true })
+      .eq('review_id', reviewId)
+      .eq('value', -1);
+
+    const [positiveResult, negativeResult, currentVote] = await Promise.all([
+      positiveQuery,
+      negativeQuery,
+      userId ? this.findVote(reviewId, userId) : Promise.resolve(null),
+    ]);
+
+    if (positiveResult.error || negativeResult.error) {
+      throw new AppError(
+        'Failed to fetch review votes',
+        500,
+        positiveResult.error ?? negativeResult.error,
+      );
+    }
+
+    const positive = positiveResult.count ?? 0;
+    const negative = negativeResult.count ?? 0;
+    return { positive, negative, net: positive - negative, currentVote };
+  },
+
+  async saveVote(reviewId: string, userId: string, value: ReviewVoteValue) {
+    const { error } = await supabase
+      .from('review_votes')
+      .upsert(
+        { review_id: reviewId, user_id: userId, value },
+        { onConflict: 'review_id,user_id' },
+      );
+
+    if (error) throw new AppError('Failed to save review vote', 500, error);
+  },
+
+  async deleteVote(reviewId: string, userId: string) {
+    const { error } = await supabase
+      .from('review_votes')
+      .delete()
+      .eq('review_id', reviewId)
+      .eq('user_id', userId);
+
+    if (error) throw new AppError('Failed to delete review vote', 500, error);
   },
 };

@@ -66,4 +66,16 @@ export const reviewsController = {
     await reviewsService.delete(id, userId);
     res.status(204).send();
   }) as RequestHandler,
+
+  getVoteSummary: (async (req, res) => {
+    const reviewId = req.params.reviewId as string;
+    const summary = await reviewsService.getVoteSummary(reviewId, req.userId);
+    res.json(summary);
+  }) as RequestHandler,
+
+  vote: (async (req, res) => {
+    const reviewId = req.params.reviewId as string;
+    const summary = await reviewsService.vote(reviewId, req.userId!, req.body?.value);
+    res.json(summary);
+  }) as RequestHandler,
 };
