@@ -31,6 +31,15 @@ export interface UpdateReviewInput {
 
 export type ReviewFeedScope = 'all' | 'following';
 
+export type ReviewVoteValue = -1 | 1;
+
+export interface ReviewVoteSummary {
+  positive: number;
+  negative: number;
+  net: number;
+  currentVote: ReviewVoteValue | null;
+}
+
 export interface FeedReview {
   id: string;
   userId: string;

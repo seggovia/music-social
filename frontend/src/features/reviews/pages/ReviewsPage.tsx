@@ -5,6 +5,7 @@ import { Skeleton } from '@/shared/components/Skeleton';
 import { Button, ButtonLink, Card } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/lib/constants';
 import { ReviewComments } from '../components/ReviewComments';
+import { ReviewVoteControl } from '../components/ReviewVoteControl';
 import { useReviewsFeedStore } from '../stores/reviewsFeedStore';
 import type { FeedReview, ReviewFeedScope } from '../types';
 import styles from './ReviewsPage.module.css';
@@ -120,6 +121,8 @@ function ReviewCard({ review }: { review: FeedReview }) {
       <p className={review.content ? styles.reviewText : `${styles.reviewText} ${styles.reviewTextEmpty}`}>
         {review.content || 'Esta reseña no incluye texto.'}
       </p>
+
+      <ReviewVoteControl reviewId={review.id} />
 
       <ReviewComments reviewId={review.id} initialCount={review.commentCount} />
     </Card>

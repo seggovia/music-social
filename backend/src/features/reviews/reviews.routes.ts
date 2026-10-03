@@ -19,6 +19,8 @@ reviewsRouter.delete(
   authMiddleware,
   asyncHandler(reviewCommentsController.delete),
 );
+reviewsRouter.get('/:reviewId/votes', optionalAuthMiddleware, asyncHandler(reviewsController.getVoteSummary));
+reviewsRouter.post('/:reviewId/vote', authMiddleware, asyncHandler(reviewsController.vote));
 reviewsRouter.get('/:id', asyncHandler(reviewsController.getById));
 reviewsRouter.put('/:id', authMiddleware, asyncHandler(reviewsController.update));
 reviewsRouter.delete('/:id', authMiddleware, asyncHandler(reviewsController.delete));

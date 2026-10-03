@@ -43,6 +43,7 @@ It's also a from-scratch build on a modern stack (React, TypeScript, Supabase) r
 - Full CRUD (0.5–5 rating, text content), one review per user per album
 - Comments on reviews (create, paginated list, delete own)
 - Global review feed with "All" / "Following" filters
+- Positive/negative review votes with optimistic updates
 
 ### Charts
 - Four views: Most Reviewed, Top All Time, Top by Year, Top by Genre
@@ -158,7 +159,7 @@ npx tsx src/scripts/merge-duplicate-albums.ts --execute
 Planned, not yet implemented:
 
 - [x] Real-time messaging (Supabase Realtime)
-- [ ] Review voting (+/-)
+- [x] Review voting (+/-)
 - [ ] "Listened" catalog (without requiring a review)
 - [ ] Notifications
 - [ ] Real avatar upload (currently URL-only)
