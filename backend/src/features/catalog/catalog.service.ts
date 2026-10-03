@@ -36,8 +36,17 @@ export const catalogService = {
     await assertAlbumExists(albumId);
     const state = await getState(userId, albumId);
 
-    // A review is authoritative evidence that the album was listened to.
-    if (state.inferredFromReview) return state;
+    // A review is authoritative evidence that the album was listened to. The
+    // toggle must reject the request instead of looking successful without
+    // changing the effective state.
+    if (state.inferredFromReview) {
+      throw new AppError(
+        'Cannot unmark an album with an active review',
+        409,
+        undefined,
+        'REVIEWED_ALBUM_CANNOT_BE_UNMARKED',
+      );
+    }
 
     if (state.explicit) {
       await catalogRepository.unmarkListened(userId, albumId);

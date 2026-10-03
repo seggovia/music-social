@@ -31,32 +31,46 @@ export function ListenedButton({ albumId, className }: ListenedButtonProps) {
 
   if (!userId) return null;
 
+  const isReviewLocked = albumState.inferredFromReview;
+  const lockedMessage = 'No puedes desmarcar un álbum reseñado.';
+  const tooltipId = `listened-review-lock-${albumId}`;
   const classes = [
     styles.button,
     albumState.listened ? styles.active : null,
     className,
   ].filter(Boolean).join(' ');
-  const title = albumState.inferredFromReview
-    ? 'Este álbum cuenta como escuchado porque escribiste una review.'
-    : albumState.listened
+  const title = albumState.listened
       ? 'Quitar de tus álbumes escuchados'
       : 'Marcar como escuchado';
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      className={classes}
-      onClick={() => void toggleAlbum(albumId, userId).catch(() => {
-        // El toast global muestra el error.
-      })}
-      disabled={albumState.isLoading || albumState.isToggling || albumState.inferredFromReview}
-      aria-pressed={albumState.listened}
-      aria-busy={albumState.isLoading || albumState.isToggling}
-      title={title}
+    <span
+      className={styles.wrapper}
+      data-locked={isReviewLocked || undefined}
+      tabIndex={isReviewLocked ? 0 : undefined}
     >
-      <ListenedIcon filled={albumState.listened} />
-      Escuchado
-    </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        className={classes}
+        onClick={() => void toggleAlbum(albumId, userId).catch(() => {
+          // El toast global muestra el error.
+        })}
+        disabled={albumState.isLoading || albumState.isToggling || isReviewLocked}
+        aria-pressed={albumState.listened}
+        aria-busy={albumState.isLoading || albumState.isToggling}
+        aria-describedby={isReviewLocked ? tooltipId : undefined}
+        title={isReviewLocked ? undefined : title}
+      >
+        <ListenedIcon filled={albumState.listened} />
+        Escuchado
+      </Button>
+
+      {isReviewLocked ? (
+        <span id={tooltipId} role="tooltip" className={styles.tooltip}>
+          {lockedMessage}
+        </span>
+      ) : null}
+    </span>
   );
 }

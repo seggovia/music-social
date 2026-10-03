@@ -122,7 +122,7 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
 
   fetchAlbumState: async (albumId, viewerId) => {
     const bucket = currentAlbumState(get(), albumId);
-    if ((bucket.loaded || bucket.isLoading) && bucket.viewerId === viewerId) return;
+    if (bucket.isLoading && bucket.viewerId === viewerId) return;
 
     set((state) => ({
       albumStates: {
@@ -174,7 +174,7 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
 
   toggleAlbum: async (albumId, viewerId) => {
     const previous = currentAlbumState(get(), albumId);
-    if (previous.isToggling) return;
+    if (previous.isToggling || previous.inferredFromReview) return;
 
     set((state) => ({
       albumStates: {
