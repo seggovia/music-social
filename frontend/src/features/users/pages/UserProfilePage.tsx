@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlbumCard } from '@/features/albums/components/AlbumCard';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { useCatalogStore } from '@/features/catalog/stores/catalogStore';
 import { FollowButton } from '@/features/follows';
 import { useFollowsStore } from '@/features/follows/stores/followsStore';
 import { useMessagesStore } from '@/features/messages/stores/messagesStore';
@@ -59,6 +60,13 @@ export function UserProfilePage() {
   const navigate = useNavigate();
   const messagesStore = useMessagesStore();
   const [isEditing, setIsEditing] = useState(false);
+  const catalogItems = useCatalogStore((state) => state.items);
+  const catalogTotal = useCatalogStore((state) => state.total);
+  const isCatalogLoading = useCatalogStore((state) => state.isLoading);
+  const isCatalogLoadingMore = useCatalogStore((state) => state.isLoadingMore);
+  const catalogHasMore = useCatalogStore((state) => state.hasMore);
+  const fetchCatalog = useCatalogStore((state) => state.fetchCatalog);
+  const loadMoreCatalog = useCatalogStore((state) => state.loadMore);
 
   useEffect(() => {
     if (!username) return;
@@ -68,7 +76,8 @@ export function UserProfilePage() {
   useEffect(() => {
     if (!currentProfile) return;
     void fetchStats(currentProfile.id);
-  }, [currentProfile, fetchStats]);
+    void fetchCatalog(currentProfile.id);
+  }, [currentProfile, fetchCatalog, fetchStats]);
 
   if (!username) return <p className={styles.page}>Usuario no encontrado.</p>;
   if (isLoading) {
@@ -220,6 +229,56 @@ export function UserProfilePage() {
                 />
               ))}
             </div>
+          )}
+        </section>
+
+        <section className={styles.reviewsSection} aria-labelledby="listened-albums-title">
+          <header className={styles.sectionHeader}>
+            <div className={styles.sectionTitleRow}>
+              <h2 id="listened-albums-title">Escuchados</h2>
+              <Badge variant="neutral" numeric className={styles.reviewCount}>
+                {catalogTotal}
+              </Badge>
+            </div>
+          </header>
+
+          {isCatalogLoading ? (
+            <Card className={styles.empty}>Cargando álbumes escuchados…</Card>
+          ) : catalogItems.length === 0 ? (
+            <Card className={styles.empty}>Todavía no hay álbumes escuchados.</Card>
+          ) : (
+            <>
+              <div className={styles.albumGrid}>
+                {catalogItems.map((album) => (
+                  <AlbumCard
+                    key={album.id}
+                    categoryLabel="Escuchado"
+                    showRating={false}
+                    album={{
+                      id: album.id,
+                      title: album.title,
+                      artist: album.artist,
+                      coverUrl: album.coverUrl,
+                      year: album.year,
+                      avgRating: 0,
+                      reviewCount: 0,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {catalogHasMore ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className={styles.loadMoreButton}
+                  onClick={() => void loadMoreCatalog()}
+                  disabled={isCatalogLoadingMore}
+                >
+                  {isCatalogLoadingMore ? 'Cargando…' : 'Cargar más escuchados'}
+                </Button>
+              ) : null}
+            </>
           )}
         </section>
       </div>

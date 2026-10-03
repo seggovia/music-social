@@ -54,6 +54,14 @@
   padding: var(--space-4);
 }
 
+.infoCompact {
+  min-height: 126px;
+}
+
+.infoCompact .artist {
+  margin-bottom: 0;
+}
+
 .category {
   margin: 0 0 var(--space-2);
   color: var(--muted-foreground);

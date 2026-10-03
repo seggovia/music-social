@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useCatalogStore } from '@/features/catalog/stores/catalogStore';
 import { reportError } from '@/shared/lib/errors';
 import { reviewsApi } from '../api/reviewsApi';
 import { useReviewsFeedStore } from './reviewsFeedStore';
@@ -75,6 +76,8 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
       const review = await reviewsApi.getMineByAlbum(albumId);
       if (!review) return null;
 
+      useCatalogStore.getState().markReviewed(albumId, true);
+
       set((state) => {
         if (state.scope?.type !== 'album' || state.scope.id !== albumId) return state;
 
@@ -121,6 +124,7 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const review = await reviewsApi.create(data);
+      useCatalogStore.getState().markReviewed(data.albumId, true);
       set((state) => ({
         reviews: state.scope?.type === 'album' && state.scope.id === data.albumId
           ? [review, ...state.reviews]
@@ -160,6 +164,7 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await reviewsApi.delete(id);
+      if (albumId) useCatalogStore.getState().markReviewed(albumId, false);
       set((state) => ({
         reviews: state.reviews.filter((r) => r.id !== id),
         total: state.scope?.type === 'album' && state.scope.id === albumId

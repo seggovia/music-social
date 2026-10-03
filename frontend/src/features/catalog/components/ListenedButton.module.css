@@ -1,0 +1,40 @@
+.button {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-inline: var(--space-3);
+  white-space: nowrap;
+}
+
+.button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.button.active:hover {
+  color: var(--primary-foreground);
+}
+
+.button.active:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.iconFill {
+  fill: currentColor;
+}
+
+.active .iconCheck {
+  stroke: var(--primary);
+  stroke-width: 2.1;
+}
