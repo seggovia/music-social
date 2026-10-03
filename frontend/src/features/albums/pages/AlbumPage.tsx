@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import { ListenedButton } from '@/features/catalog/components/ListenedButton';
 import { ReviewForm } from '@/features/reviews/components/ReviewForm';
 import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { useReviewsStore } from '@/features/reviews/stores/reviewsStore';
@@ -100,14 +101,7 @@ export function AlbumPage() {
               <span aria-hidden="true">▶</span>
               Escuchar
             </Button>
-            <Button
-              variant="secondary"
-              className={styles.iconButton}
-              aria-label="Añadir álbum"
-              title="Añadir álbum"
-            >
-              <span aria-hidden="true">＋</span>
-            </Button>
+            <ListenedButton albumId={currentAlbum.id} />
             <Button
               variant="secondary"
               className={styles.iconButton}

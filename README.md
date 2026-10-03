@@ -37,6 +37,7 @@ It's also a from-scratch build on a modern stack (React, TypeScript, Supabase) r
 - Album search against MusicBrainz with intelligent local caching (deduplicated by release-group, not by individual release)
 - Cover art via Cover Art Archive, genre data via Last.fm as fallback
 - Album detail pages with tracklist, artist link, genres, and reviews
+- Public listened catalogs, including albums implied by existing reviews
 - Artist search and discography pages
 
 ### Reviews
@@ -160,7 +161,7 @@ Planned, not yet implemented:
 
 - [x] Real-time messaging (Supabase Realtime)
 - [x] Review voting (+/-)
-- [ ] "Listened" catalog (without requiring a review)
+- [x] "Listened" catalog (without requiring a review)
 - [ ] Notifications
 - [ ] Real avatar upload (currently URL-only)
 - [ ] Edit/delete review from the review form

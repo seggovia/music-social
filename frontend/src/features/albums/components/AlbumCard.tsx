@@ -16,13 +16,14 @@ export interface AlbumCardData {
 interface AlbumCardProps {
   album: AlbumCardData;
   categoryLabel?: string;
+  showRating?: boolean;
 }
 
 function formatReviewCount(count: number) {
   return `${count} ${count === 1 ? 'calificación' : 'calificaciones'}`;
 }
 
-export function AlbumCard({ album, categoryLabel = 'Top All Time' }: AlbumCardProps) {
+export function AlbumCard({ album, categoryLabel = 'Top All Time', showRating = true }: AlbumCardProps) {
   return (
     <Link to={`${ROUTES.ALBUMS}/${album.id}`} className={styles.cardLink}>
       <Card padding="none" className={styles.card}>
@@ -39,16 +40,18 @@ export function AlbumCard({ album, categoryLabel = 'Top All Time' }: AlbumCardPr
             </Badge>
           ) : null}
         </div>
-        <div className={styles.info}>
+        <div className={showRating ? styles.info : `${styles.info} ${styles.infoCompact}`}>
           <p className={styles.category}>{categoryLabel}</p>
           <h3 className={styles.title}>{album.title}</h3>
           <p className={styles.artist}>{album.artist}</p>
-          <Badge variant="rating" numeric className={styles.ratingBadge}>
+          {showRating ? (
+            <Badge variant="rating" numeric className={styles.ratingBadge}>
             <span aria-hidden="true">★</span>
             <span>{album.avgRating.toFixed(1)}</span>
             <span className={styles.ratingDivider} aria-hidden="true">·</span>
             <span>{formatReviewCount(album.reviewCount)}</span>
-          </Badge>
+            </Badge>
+          ) : null}
         </div>
       </Card>
     </Link>

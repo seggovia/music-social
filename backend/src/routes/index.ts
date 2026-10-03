@@ -7,6 +7,7 @@ import { messagesRouter } from '../features/messages/messages.routes.js';
 import { usersRouter } from '../features/users/users.routes.js';
 import { chartsRouter } from '../features/charts/charts.routes.js';
 import { followsRouter } from '../features/follows/follows.routes.js';
+import { catalogRouter } from '../features/catalog/catalog.routes.js';
 
 export const apiRouter = Router();
 
@@ -18,3 +19,4 @@ apiRouter.use('/messages', messagesRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/charts', chartsRouter);
 apiRouter.use('/follows', followsRouter);
+apiRouter.use('/catalog', catalogRouter);
