@@ -33,6 +33,7 @@ const MESSAGE_OVERRIDES: Record<string, string> = {
   'Review comment not found': 'No encontramos ese comentario.',
   'Not authorized to delete this comment': 'Solo puedes borrar tus propios comentarios.',
   'Review vote must be 1 or -1': 'El voto debe ser positivo o negativo.',
+  'Cannot unmark an album with an active review': 'No puedes desmarcar un álbum que has reseñado.',
   'Message body cannot be empty': 'Escribe un mensaje antes de enviarlo.',
   'Message not found': 'No encontramos ese mensaje.',
   'You can only edit your own messages': 'Solo puedes editar tus propios mensajes.',
